@@ -44,6 +44,7 @@ Then, follow these instructions:
 1.    Attach the following IAM policy to your Lambda function's execution role in account A to assume the role in account B:
 
 Note: Replace 222222222222 with the AWS account ID of account B.
+```json
 
 {
     "Version": "2012-10-17",
@@ -53,10 +54,14 @@ Note: Replace 222222222222 with the AWS account ID of account B.
         "Resource": "arn:aws:iam::222222222222:role/LambdaExecute"
     }
 }
+```
+
 2.    Modify the trust policy of the assumed role in account B to the following:
 
 Note: Replace 111111111111 with the AWS account ID of account A.
-    "Version": "2012-10-17",
+```json
+
+"Version": "2012-10-17",
     "Statement": [
         {
             "Effect": "Allow",
@@ -67,6 +72,7 @@ Note: Replace 111111111111 with the AWS account ID of account A.
         }
     ]
 }
+```
 
 # 7 Check the tags
 We check for the tag managment of the resources newly deployed and verify that a tag with the user ID is present
