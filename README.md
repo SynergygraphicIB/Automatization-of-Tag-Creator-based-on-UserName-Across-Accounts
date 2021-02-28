@@ -15,9 +15,7 @@ Create lambda functions:
 
 1. ExtractSns: Allows to extract the SNS message and return the cloudwatch event
 
-2. ReturnAccesKey: It Validates the account id and add the values aws_access_key_id and aws_secret_access_key to the event (edit values 1111111 for your account access)
-
-3. CreateTagCreatorID: It runs only resource creation events using rescursivity. It extracts all the creation id of the event to later place the tag of who executed that event regardless of whether it was an access role (Remember we are using Access Roles to jump to any account in the organization from the master account) or an IAM user
+2. CreateTagCreatorID: It runs only resource creation events using rescursivity. It extracts all the creation id of the event to later place the tag of who executed that event regardless of whether it was an access role (Remember we are using Access Roles to jump to any account in the organization from the master account) or an IAM user
 
 # 2. Bind lambda functions through target
 
@@ -35,6 +33,42 @@ Create Topic Sns in account A with the necessary permissions to publish messages
 
 # 6  Create CloudWatch event Rule and link to event Bus in Account B
   Create an event pattern the same as the previous one and select as Target Event bus in another AWS accountfrom the organization here, provide the id of account A and create a role for the execution of the event bus
+
+# 8 Setting up the appropiate permsissions to a Lambda Execution Role in Account A and Assume Role in account B
+If you haven't already, configure these two AWS Identity and Access Management (IAM) roles:
+
+ExecutionRole – The primary role in account A that gives the Lambda function permission to do its work.
+Assumed role – A role in account B that the Lambda function in account A assumes to gain access to cross-account resources.
+Then, follow these instructions:
+
+1.    Attach the following IAM policy to your Lambda function's execution role in account A to assume the role in account B:
+
+Note: Replace 222222222222 with the AWS account ID of account B. Replace role-on-source-account with the name of the assumed role.
+
+{
+    "Version": "2012-10-17",
+    "Statement": {
+        "Effect": "Allow",
+        "Action": "sts:AssumeRole",
+        "Resource": "arn:aws:iam::222222222222:role/role-on-source-account"
+    }
+}
+2.    Modify the trust policy of the assumed role in account B to the following:
+
+Note: Replace 111111111111 with the AWS account ID of account A. Replace my-lambda-execution-role with the name of the execution role.
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::111111111111:role/my-lambda-execution-role"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
 
 # 7 Check the tags
 We check for the tag managment of the resources newly deployed and verify that a tag with the user ID is present
