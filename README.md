@@ -1,6 +1,6 @@
 # Username-Tag-Creator
 
-A Lambda function to create labels with the creator ID to track who did what. The lambda function fires when any AWS resource is deployed using the console or the AWS SDK for Python (Boto3). Once the resource resource is implemented, Cloudwatch sends the event to a Topic SNS that will later be sent to the lambda function allowing it to be executed from any account and region within the organization.
+A This Lambda function createsi labels with the creator ID to track who did what. The lambda function fires when any AWS resource is deployed using the console or the AWS SDK for Python (Boto3). Once the resource resource is implemented, Cloudwatch sends the event to a Topic SNS that will later be sent to the lambda function allowing it to be executed from any account and region within the organization.
 
 In this case we will implement the function in account A to be executed from account B of the organization
 
@@ -11,7 +11,7 @@ Create lambda functions:
 
 ExtractSns: Allows to extract the SNS message and return the cloudwatch event
 
-ReturnAccesKey: Validate the account id and add the values aws_access_key_id and aws_secret_access_key to the event (edit values 1111111 for your account access
+ReturnAccesKey: It filters and Validates the account id and add the values aws_access_key_id and aws_secret_access_key to the event (edit values 1111111 for your account access
 )
 
 CreateTagCreatorID: Using rescursivity it extracts all the creation id of the event to later place the tag of who executed that event regardless of whether it was a role or an IAM user
