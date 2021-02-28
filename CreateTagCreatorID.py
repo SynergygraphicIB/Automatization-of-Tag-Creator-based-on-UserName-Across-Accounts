@@ -11,7 +11,8 @@ def lambda_handler(event, context):
     # it overwrites event variable with the event coming from previous lambda
     event= event.get("responsePayload")
     
-    # We capture evenName, userIdentity and awsRegion coming from json
+    # We capture and Filter the evenName -  if not a creation event it does not process the tag Creator
+    # if itis a  creation event it does process the tag Creator, it passes the event, userIdentity and awsRegion coming from json
     eventName=event["detail"].get("eventName")
     if("Create" in eventName or (eventName in ["RunInstances","AllocateAddress"])):
         
@@ -19,15 +20,26 @@ def lambda_handler(event, context):
         region=event["detail"].get("awsRegion")
         userName = event["detail"]["userIdentity"].get("sessionContext")
     
-        key_id = event["aws_access_key_id"] 
-        acces_key = event["aws_secret_access_key"]
-                
+    
+        roleARN= "arn:aws:iam::"+str(event.get("account"))+":role/LambdaExecute"
+        
+        sts_connection = boto3.client('sts')
+        acct_b = sts_connection.assume_role(
+            RoleArn=roleARN,
+            RoleSessionName="cross_acct_lambda"
+        )
+        
+        
+        ACCESS_KEY = acct_b['Credentials']['AccessKeyId']
+        SECRET_KEY = acct_b['Credentials']['SecretAccessKey']
+        SESSION_TOKEN = acct_b['Credentials']['SessionToken']
+                        
         if(userName != None):
             userName= userName["sessionIssuer"].get("userName")
         else:
             userName= event["detail"]["userIdentity"].get("userName")
             
-        client = boto3.client('ec2', region_name = region, aws_access_key_id = key_id, aws_secret_access_key = acces_key)
+        client = boto3.client('ec2', region_name = region, aws_access_key_id = ACCESS_KEY, aws_secret_access_key = SECRET_KEY ,aws_session_token = SESSION_TOKEN )
         
         response =  event["detail"]["responseElements"]
         request = event["detail"]["requestParameters"]
