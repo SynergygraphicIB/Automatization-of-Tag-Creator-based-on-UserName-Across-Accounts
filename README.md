@@ -37,3 +37,7 @@ Create Topic Sns in account A with the necessary permissions to publish messages
 We check for the tag managment of the resources newly deployed and verify that a tag with the user ID is present
 
 
+# Note: If you want to implement the function in different regions, repeat steps 3 to 7
+
+
+
