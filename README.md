@@ -37,33 +37,31 @@ Create Topic Sns in account A with the necessary permissions to publish messages
 # 8 Setting up the appropiate permsissions to a Lambda Execution Role in Account A and Assume Role in account B
 If you haven't already, configure these two AWS Identity and Access Management (IAM) roles:
 
-ExecutionRole – The primary role in account A that gives the Lambda function permission to do its work.
+LambdaExecute – The primary role in account A that gives the Lambda function permission to do its work.
 Assumed role – A role in account B that the Lambda function in account A assumes to gain access to cross-account resources.
 Then, follow these instructions:
 
 1.    Attach the following IAM policy to your Lambda function's execution role in account A to assume the role in account B:
 
-Note: Replace 222222222222 with the AWS account ID of account B. Replace role-on-source-account with the name of the assumed role.
+Note: Replace 222222222222 with the AWS account ID of account B.
 
 {
     "Version": "2012-10-17",
     "Statement": {
         "Effect": "Allow",
         "Action": "sts:AssumeRole",
-        "Resource": "arn:aws:iam::222222222222:role/role-on-source-account"
+        "Resource": "arn:aws:iam::222222222222:role/LambdaExecute"
     }
 }
 2.    Modify the trust policy of the assumed role in account B to the following:
 
-Note: Replace 111111111111 with the AWS account ID of account A. Replace my-lambda-execution-role with the name of the execution role.
-
-{
+Note: Replace 111111111111 with the AWS account ID of account A.
     "Version": "2012-10-17",
     "Statement": [
         {
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::111111111111:role/my-lambda-execution-role"
+                "AWS": "arn:aws:iam::111111111111:role/LambdaExecute"
             },
             "Action": "sts:AssumeRole"
         }
