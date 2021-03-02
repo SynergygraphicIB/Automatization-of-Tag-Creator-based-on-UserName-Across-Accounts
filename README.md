@@ -7,7 +7,7 @@ This Lambda function creates labels with the creator ID to track who did what. T
 In this case we will implement the lambda functions in account A in us-east-1 to to tag deployment events executed from account B in the organization
 
 # 1. Create Lambda Functions in Account A
-First, We set our lambda functions in virginia region, us-east-1. Any deployment event from any region and any account from the organization is sent in form of sns message here.
+First, We set our lambda functions in virginia region, us-east-1. Any deployment event from any region and any account from the organization is sent in form of a sns message here.
 
 Then, We create a role with sufficient permissions to deploy AWS resources and attach them to using the lambda function to create labels.
 
@@ -37,11 +37,11 @@ Create an event pattern the same as the previous one and select as Target the Ev
 # 7 Setting up the appropiate permsissions to a Lambda Execution Role in Account A and Assume Role in account B
 If you haven't already, configure these two AWS Identity and Access Management (IAM) roles:
 
-LambdaAdmin – The primary role in account A that gives the Lambda function permission to do its work.
-The Assumed role – A role in account B, Say LambdaExecute  that the Lambda function in account A assumes to gain access to cross-account resources, in this case resources from Account B.
+LambdaAdminAccountA – The primary role in account A that gives the Lambda function permission to do its work.
+The Assumed role – a role in account B, Say LambdaExecuteAccountB  that the Lambda function in account A assumes to gain access to cross-account resources, in this case resources from Account B.
 Then, follow these instructions:
 
-1.    Attach the following IAM policy to your Lambda function's execution role in account A to assume the role in account B:
+1.    In Account A - Attach the following IAM policy to your Lambda function's execution role to assume the role in account B:
 
 Note: Replace 222222222222 with the AWS account ID of account B.
 ```json
@@ -51,12 +51,13 @@ Note: Replace 222222222222 with the AWS account ID of account B.
     "Statement": {
         "Effect": "Allow",
         "Action": "sts:AssumeRole",
-        "Resource": "arn:aws:iam::222222222222:role/LambdaExecute"
+        "Resource": "arn:aws:iam::222222222222:role/LambdaExecuteAccountB"
     }
 }
 ```
+Is noteworthy to say you should keep consistency the Role name created in the Different Accounts of your Organization. For this document we chose to name the Role in account B, LambdaExecuteAccountB, for clarity purposes.
 
-2.    Edit the trust relationship of the assumed role in account B to the following:
+2.    In Account B - Edit the trust relationship of the assumed role in with the following Json:
 
 Note: Replace 111111111111 with the AWS account ID of account A.
 ```json
@@ -66,7 +67,7 @@ Note: Replace 111111111111 with the AWS account ID of account A.
         {
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::111111111111:role/LambdaExecute"
+                "AWS": "arn:aws:iam::111111111111:role/LambdaAdminAccountA"
             },
             "Action": "sts:AssumeRole"
         }
