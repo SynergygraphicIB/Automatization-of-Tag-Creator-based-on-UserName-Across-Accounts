@@ -31,14 +31,14 @@ Create Topic Sns in account A with the necessary permissions to publish messages
 # 5 Create CloudWatch event Rule and link to the SNS topic in Account A
  Create event pattern that captures all creation events using AWS API Call via CloudTrail and select the previously created Topic SNS as destination
 
-# 6  Create CloudWatch event Rule and link to event Bus in Account B
-  Create an event pattern the same as the previous one and select as Target Event bus in another AWS accountfrom the organization here, provide the id of account A and create a role for the execution of the event bus
+# 6  Create a CloudWatch event Rule in Account B and link it to event Bus in Account A
+Create an event pattern the same as the previous one and select as Target the Event bus in Account A, since this is where we are parking the SNS Topic that ultimately sends the message with the event to the lambda functio., Provide the id of account A and create a role for the execution of the event bus, Cloud Watch generates a New role by default.
 
 # 7 Setting up the appropiate permsissions to a Lambda Execution Role in Account A and Assume Role in account B
 If you haven't already, configure these two AWS Identity and Access Management (IAM) roles:
 
-LambdaExecute – The primary role in account A that gives the Lambda function permission to do its work.
-Assumed role – A role in account B that the Lambda function in account A assumes to gain access to cross-account resources.
+LambdaAdmin – The primary role in account A that gives the Lambda function permission to do its work.
+The Assumed role – A role in account B, Say LambdaExecute  that the Lambda function in account A assumes to gain access to cross-account resources, in this case resources from Account B.
 Then, follow these instructions:
 
 1.    Attach the following IAM policy to your Lambda function's execution role in account A to assume the role in account B:
@@ -56,7 +56,7 @@ Note: Replace 222222222222 with the AWS account ID of account B.
 }
 ```
 
-2.    Modify the trust policy of the assumed role in account B to the following:
+2.    Edit the trust relationship of the assumed role in account B to the following:
 
 Note: Replace 111111111111 with the AWS account ID of account A.
 ```json
@@ -75,7 +75,7 @@ Note: Replace 111111111111 with the AWS account ID of account A.
 ```
 
 # 8 Check the tags
-We check for the tag managment of the resources newly deployed and verify that a tag with the user ID is present
+We check for the tag managment of the resources newly deployed from Account B and verify that a tag with the user ID is present to ensure the proper functioning of the Lambda Tagging function
 
 
 # Note: If you want to implement the function in different regions, repeat steps 3 to 7
