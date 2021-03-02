@@ -25,8 +25,8 @@ When the ExtractSNS function is executed correctly, it must invoke and return th
 
 Create Topic Sns in account A with the necessary permissions to publish messages in the Lambda function and subscribe to the ExtractSNS lambda function. CloudWatch enable us publish events to any region. Since our lambda functions are base in Virgina (us-east-1) we must ensure that deployments from any region are sent to the lambda function sequence in Account A.
 
-# 4. Create event bus in Account A
- Create an event bus that allows account A to receive all events from the accounts in the organization
+# 4. Add the necessary permissions in Event Buses in Account A
+ Add an Event Buses Permission hat allows account A to receive all events from all the accounts in the organization
 
 # 5 Create CloudWatch event Rule and link to the SNS topic in Account A
  Create event pattern that captures all creation events using AWS API Call via CloudTrail and select the previously created Topic SNS as destination
