@@ -34,7 +34,7 @@ Create Topic Sns in account A with the necessary permissions to publish messages
 # 6  Create CloudWatch event Rule and link to event Bus in Account B
   Create an event pattern the same as the previous one and select as Target Event bus in another AWS accountfrom the organization here, provide the id of account A and create a role for the execution of the event bus
 
-# 8 Setting up the appropiate permsissions to a Lambda Execution Role in Account A and Assume Role in account B
+# 7 Setting up the appropiate permsissions to a Lambda Execution Role in Account A and Assume Role in account B
 If you haven't already, configure these two AWS Identity and Access Management (IAM) roles:
 
 LambdaExecute – The primary role in account A that gives the Lambda function permission to do its work.
@@ -74,7 +74,7 @@ Note: Replace 111111111111 with the AWS account ID of account A.
 }
 ```
 
-# 7 Check the tags
+# 8 Check the tags
 We check for the tag managment of the resources newly deployed and verify that a tag with the user ID is present
 
 
