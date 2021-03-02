@@ -32,7 +32,7 @@ Create Topic Sns in account A with the necessary permissions to publish messages
  Create event pattern that captures all creation events using AWS API Call via CloudTrail and select the previously created Topic SNS as destination
 
 # 6  Create a CloudWatch event Rule in Account B and link it to event Bus in Account A
-Create an event pattern the same as the previous one and select as Target the Event bus in Account A, since this is where we are parking the SNS Topic that ultimately sends the message with the event to the lambda functio., Provide the id of account A and create a role for the execution of the event bus, Cloud Watch generates a New role by default.
+Create an event pattern the same as the previous one and select as Target the Event bus in Account A since this is where we are parking the SNS Topic that ultimately sends the message with the event to the lambda function, Select as Target "Event bus in another AWS Account, Provide the id of account A and create a new role for the execution of the event bus, Cloud Watch does it for you...yeah nice with the appropiate permissions
 
 # 7 Setting up the appropiate permsissions to a Lambda Execution Role in Account A and Assume Role in account B
 If you haven't already, configure these two AWS Identity and Access Management (IAM) roles:
