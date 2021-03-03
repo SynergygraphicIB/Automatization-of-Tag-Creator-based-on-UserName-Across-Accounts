@@ -1,29 +1,30 @@
 # Username-Tag-Creator
 
-We must assume there is and AWS organization set in place with all the proper permissions to ensure that events and sns are to be passed between the accounts.
+We assume You and AWS organization set in place with all the neccesary permissions to ensure that resource creation events and all related info are to be passed between the accounts of the organization. For the sake of this document the ID of our organization is o-yvQk5gerjaja 
 
-This Lambda function creates labels with the creator ID to track who did what. The lambda function fires when any AWS resource is deployed either by using the console or the AWS SDK for Python (Boto3). Once the resource is implemented, Cloudwatch sends the event to a Topic SNS that will later be sent to the lambda function allowing it to be executed from any account and region within the organization. In our proyect our Tag-Creator sequence of Lambda Functions are set in Account A and any account from the organization, let is say from Account B we deploy a VPC. This event is filtered when it arrives to Account A based on the event type; any create event, runInstances event or Allocation event. If validated it is sent to the Tag-Creator lambda function so to ensure that any resource being deployed by authorized users gets tagged.
+TagCreator Lambda function creates labels with the creator ID to track who did what. This is a highly valuable feature to help us keep track of our resources and reduce the time consuming resource management. We will deploy a pair of lambda functions; ExtractSns and TagCreatorId, in the us-east-1 region in Security Account that we will call ReceiverAccount in our organization to centralize the control and tagging of our resources being deployed in any account of the organization. Also, we will adress the Member Account which is sending the event as SenderAccount to help with the clarity of this doc. Ideally, our lambdas in the ReceiverAccount are fired when any AWS resource is deployed in any SenderAccount either by using the console or the AWS SDK for Python (Boto3). Once the resource is deployed Cloudwatch captures and sends the event through Event Buses to a matching Event Bus in ReceiverAccount. From Cloudwatch-Event Buses in ReceiverAccount to a Topic SNS named  that sends a string with the event info to the ExtractSns function allowing it to be executed from any region within ReceiverAccount, we need this intermidial lambda because Tagcreator only processes events in Json format and we must convert the string sent by SnsSendToLambda back to json format . the aforementioned lambda passes the event to TagCreator function to process the event .- say RunInstances and created the tags with a Key/value as instructed by the code , in our case UserName = UserNamehere. This sequence of sns topic - lambdas our Tag-Creator in ReceiverAccount ensures that if we deploy a VPC with a route table, both resources will get a tag with the use name who did the deployment. 
 
-In this case we will implement the lambda functions in account A in us-east-1 to to tag deployment events executed from account B in the organization
+# 1. Create a Role in ReceiverAccount
+We create a role in ReceiverAccount with enough permissions to assume role, security token services and create tags. Let us call our Role TagCreatorLambdaRole. if you are not too proficient about how to define policies in json just attach AdministratorAccess permission policy to the role.
 
-# 1. Create Lambda Functions in Account A
-First, We set our lambda functions in virginia region, us-east-1. Any deployment event from any region and any account from the organization is sent in form of a sns message here.
+# 2. Deploy Lambda Functions in ReceiverAccount
+We set our lambda functions in virginia region or us-east-1. Any deployment event from any region in any sender account within the organization gets sent to the matching region in RecepientAccount. Once the event is ReceiverAccount from CloudWatch in any region the event is sent to our lambdas thru Sns Topic to ExtractSns Lambda Function.
 
-Then, We create a role with sufficient permissions to deploy AWS resources and attach them to using the lambda function to create labels.
+We use the role, TagCreatorLambdaRole,  to the lambda function to create labels.
 
-Create lambda functions:
+Create or import lambda functions:
 
-1. ExtractSns: Allows to extract the SNS message and return the cloudwatch event
+1. ExtractSns: extracts the message of the event coming from Sns Topics which is a form of a string and return the cloudwatch event back in Json format.  
 
-2. CreateTagCreatorID: It runs only resource creation events using rescursivity. It extracts all the creation id of the event to later place the tag of who executed that event regardless of whether it was an access role (Remember we are using Access Roles to jump to any account in the organization from the master account) or an IAM user
+2. TagCreatorId: It only runs when resource creation events happen. Using rescursivity search and extracts all the creation ids of the event to create the tag of who executed the deployment whether it was an access role (Remember we are using Access Roles to jump to any account in the organization from the master account) or an IAM user.
 
-# 2. Bind lambda functions through target
+# 3. Bind lambda functions through target
 
-When the ExtractSNS function is executed correctly, it must invoke and return the information to the ReturnAccesKeys function and when it is executed correctly it must return the information that later passes it to the CreateTagCreatorID function.
+.When the ExtractSNS function does its job correctly it invokes and return the CloudWatch event to TagCreatorId function. In ExtractSNS configuration we go to "add destination" and in Destination configuration select source > Asynchronous invocation, Condition > On success, Destination type > Lambda function, in Destination select TagCreatorId. Hit Save
 
-# 3. Create SNS Topic and Subscribe Lambda Function in Account A
+# 4. Create SNS Topic and Subscribe Lambda Function in ReceiverAccount
 
-Create Topic Sns in account A with the necessary permissions to publish messages in the Lambda function and subscribe to the ExtractSNS lambda function. CloudWatch enable us publish events to any region. Since our lambda functions are base in Virgina (us-east-1) we must ensure that deployments from any region are sent to the lambda function sequence in Account A.
+Create a Sns Topic in ReceiverAccount with the necessary permissions to publish messages in the Lambda function and subscribe it to the ExtractSNS lambda function. CloudWatch enable us publish events to any region. Since our lambda functions are base in Virgina (us-east-1) we must ensure that deployments from any region are sent to the lambda function sequence in Account A.
 
 # 4. Add the necessary permissions in Event Buses in Account A
  Add an Event Buses Permission hat allows account A to receive all events from all the accounts in the organization
