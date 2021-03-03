@@ -22,9 +22,13 @@ Create or import lambda functions:
 
 .When the ExtractSNS function does its job correctly it invokes and return the CloudWatch event to TagCreatorId function. In ExtractSNS configuration we go to "add destination" and in Destination configuration select source > Asynchronous invocation, Condition > On success, Destination type > Lambda function, in Destination select TagCreatorId. Hit Save
 
-# 4. Create SNS Topic and Subscribe Lambda Function in ReceiverAccount
+# 4. Create SNS Topic "SnsSendToLambda" and Subscribe Lambda Function "ExtractSNS" in us-east-1 in ReceiverAccount
 
-Create a Sns Topic in ReceiverAccount with the necessary permissions to publish messages in the Lambda function and subscribe it to the ExtractSNS lambda function. CloudWatch enable us publish events to any region. Since our lambda functions are base in Virgina (us-east-1) we must ensure that deployments from any region are sent to the lambda function sequence in Account A.
+Why we need SNS Topic "SnsSendToLambda"? CloudWatch enable us to pass events to any region by targeting SNS Topics.  SnsSendToLambda will be deploy in us-east-1 (Virgina) which it is where we have deployed our Lambdas and  our SNS topic. Let us keep in mind that Cloudwatch events only passes events between matchin regions across accounts. So, If a vpc deployment happens in us-east-2 in SenderAcccount this event is captured by cloudwatch event buses in us-east-2 will be passed to a matching event busesto CloudWatch in the ReceipentAccount in us-east-2. Hence, our event info already is in ReceiverAccount, yet in us-east-2 (Ohio region). We can forward the event to our lambdas in us-east-1 by targeting SNS topic that may be located in another region in Cloudwatch. 
+
+Create a Sns Topic called SnsSendToLambda in us-east-1 in ReceiverAccount with the necessary permissions to publish messages in the Lambda function and subscribe it to ExtractSNS lambda function. 
+
+Create a subscription to SnsSendToLambda with protocol aws lambda and type as endpoint ExtractSNS, and hit "Create Subscription".
 
 # 4. Add the necessary permissions in Event Buses in Account A
  Add an Event Buses Permission hat allows account A to receive all events from all the accounts in the organization
