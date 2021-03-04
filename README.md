@@ -3,7 +3,7 @@
 We already have to have an AWS organization set in place with all the neccesary permissions accross accounts to ensure that resource creation events and all related event calls are to be passed between the accounts of the organization. 
 At least two accounts. A ReceiverAccount with ID 111111111111 and a SenderAccount with ID 222222222222. For the sake of this document the ID of our organization is o-myexampleOrgId 
 
-**List of Resources Deployed**
+**List of Resources Used or Deployed**
 IAM Roles
 LambdaAdmin - Role with the necessary permissions to enable the Lambda functions to perform the task with want them to do In ReceiverAccount
 LambdaExecute - Role we create in SenderAccount with to be assumed by LambdaAdmin from ReceiverAccount to get the creation events.
@@ -12,9 +12,10 @@ SnsSendToLambdaOhio - We deploy this Sns Topic in us-east-2 in Reciever account 
 Lambda functions
 ExtractSns - Converts the string coming from the Sns Topic "SnsSendToLambdaOhio" back into Json. It has as target destination TagCreatorId Lambda Function.
 TagCreatorId- creates tags with the creator ID and arn to track who did what. This is a highly valuable feature to help keep tracking resources and reduce the time consuming resource management. 
+CloudWatch Rules - We create a rule to capture events in us-east-2 in sender account and in the receiver account also in us-east-2. also we have to add a permission to allow even buses to pass events in the organization and edit trust relationships. 
 
 **How does it work?** 
-We will pass a deployment event in us-east-2 in SenderAccount to lambda functions to create tags onto those resources deployed in us-east-1 in a ReceivingAccount. So, we have to create a pipeline to make this posible.
+We will pass a deployment event in us-east-2 in SenderAccount to lambda functions in us-east-1 in a ReceiverAccount to create tags onto the resources newly deployed the ReceivingAccount. So, we have to create a pipeline to make this posible.
 We will deploy a pair of lambda functions; ExtractSns and TagCreatorId in the us-east-1 region in a designated account that we will be ReceiverAccount in our organization. The purpose is to centralize the control and tagging of resources being deployed in any member account of the organization. Also, we will use the Member Account which will be sending the creation event calls as SenderAccount to help you to follow this tutorial. 
 When properly set our lambdas in the ReceiverAccount are fired when any AWS resource is deployed by SenderAccount either by using the console or the AWS SDK for Python (Boto3). The Process begins this way; a Vpc is deployed, then Cloudwatch captures and sends the event through Event Buses to a matching Event Bus in ReceiverAccount in the same region. From ReceiverAccount in us-east-2, Cloudwatch-Event Buses sends it to a Topic SNS named "SnsSendToLambdaOhio" (also in us-east-2) that sends a string with the event info to the ExtractSns function (that is in us-east-1). With this setting we allowteh call event to be passed from the Ohio to Virginia region within ReceiverAccount. Then we can repeat the same process for the other regions that apply.
 We need a intermedial"SnsSendToLambdaOhio" SNS topic to "ExtractSNS" Lambda Function  because Tagcreator only processes events in Json format and we must convert the string sent by Sns Topics need to be converted back into json format . the aforementioned "ExtractSNS" lambda passes the event to TagCreator lambda function to process the event and crate the tags .- say the call event is RunInstances and creating the tags with a Key/value is instructed by the code , in our case UserName = UserNamehere, then a newly Instance deployed in a sender account will have its UserName tags with the user name as value created automatically even though the pair of lambda functions are in a receiver account in another region.
@@ -49,9 +50,12 @@ CloudWatch enable us to use SNS Topics to pass events to any resource targets in
 Create a Sns Topic called SnsSendToLambda in us-east-1 in ReceiverAccount with the necessary permissions to publish messages to a Lambda function; use aws lambda and select ExtractSNS as endpoint , and hit "Create Subscription".
 
 # 5. Add the necessary permissions in Event Buses in ReceiverAccount in the matching region (for this example us-east-2)
-We need to add permissions in Event Buses but Why? Let us keep in mind that Cloudwatch events only passes events between matchin regions across accounts. So, If a vpc deployment happens in us-east-2 in SenderAcccount, this event is then captured by cloudwatch event buses in us-east-2 will be passed to a matching event buses to CloudWatch in the ReceipentAccount in us-east-2.
-CloudWatch has a default Event Bus and it is stateless, it means we have to set the permissions for it to start to receive events from our organization. Therefore we add a  Event Buses Permission that allows CloudWatch in  ReceiverAccount to get all events from any account in the organization.
-In Cloudwatch in us-east-2 go to the Event Buses tab in the menu. After, add a new permission. Type = Organization and Organization ID =  o-myexampleOrgId, and hit add. By this action the default event bus in EventBridge will get a policy with permissions enough to receive event calls from any account in the organization. 
+We need to add permissions in Event Buses but Why? 
+Cloudwatch events only passes events between matching regions across accounts. So, If a vpc deployment happens in us-east-2 in SenderAcccount, this event is then captured by cloudwatch event buses in us-east-2 and it is passed to a matching event buses to CloudWatch in the ReceipentAccount in us-east-2.
+
+CloudWatch has a default Event Bus and it is stateless, it means that we have to set the permissions for it to start to receive events from our organization. Therefore, we add the Permission to get all events from any account in the organization.
+
+In Cloudwatch in us-east-2 go to the Event Buses tab in the menu. After, add a new permission. Type = Organization and select Organization ID =  o-myexampleOrgId, and hit add. By this action the default event bus in EventBridge will get a policy with permissions enough to receive event calls from any account in the organization. 
  
 The default event bus name is something like this - arn:aws:events:us-east-2:111111111111:event-bus/default
 
@@ -89,12 +93,12 @@ In the CloudWacht menu select Rules, In Rules, click Create Rule button, and cho
 }
 ```
 
-In Targets configure rule details, in name type "SnsSendToLambdaOhio", you may add a description if you choose to, and click "Create Rule"
+In Targets configure rule details, in name type "SnsSendToLambdaOhio", you may add a description if you choose to, and click "Create Rule".
 
 # 6  In SenderAccount create a matching CloudWatch event Rule in same region (we are using us-east-2 - Ohio Region) and link it to event Bus in matching region in ReceiverAccount.
 
-Create an event pattern the same as the previous one and select as Target the default Event bus in Receveiver Account. Here there the SNS Topic "SnsSendToLambdaOhio" that ultimately sends the message to the lambda function "ExtractSnS". Select as Target "Event bus in another AWS Account, Provide the id of ReceiverAccount and create a new role for the execution of the event bus, CloudWatch does it for you...yeah nice with the appropiate permissions
-A new Role is created with the following permissions:
+Create an event pattern the same as the previous one and select as Target the default Event bus in Receveiver Account. Select as Target "Event bus in another AWS Account, Provide the id of ReceiverAccount, per example "111111111111" and create a new role for the execution of the event bus, CloudWatch does it for you...yeah really nice and with the appropiate permissions. the Event Bus Targeted is "arn:aws:events:us-east-2:111111111111:event-bus/default"
+A new Role is automatically created with the following permissions:
 ```json
 {
     "Version": "2012-10-17",
@@ -111,17 +115,18 @@ A new Role is created with the following permissions:
     ]
 }
 ```
-Note: For this example the account Id for ReceiverAccount is 11111111111111. Replace that number for your receiver account ID.
+Note: If you choose to create your own role you can use this example. Here, the account Id for ReceiverAccount is 11111111111111. Replace that number for your receiver account ID with your own designated receiver account.
 
-# 7 Setting up the appropiate permsissions to a Lambda Execution Role in ReceiverAccount and Assume a Role in SenderAccount
+# 7 Setting up the appropiate permsissions to a Lambda Execution Role in ReceiverAccount to Assume a Role in the SenderAccount
 If you haven't already, configure these two AWS Identity and Access Management (IAM) roles:
 
-LambdaAdmin in ReceiverAccount – The primary role in receiver account that gives the Lambda function permission to do its work.
-The Assumed role – a role in SenderAccount; say LambdaExecute  that the Lambda function in ReceiverAccount assumes to gain across-account resource access, in this case resources from SendingAccount
+**LambdaAdmin in ReceiverAccount** – The primary role in receiver account that gives the Lambda functions permission to do its work.
+
+**The Assumed role** – a role in SenderAccount; say LambdaExecute  that the Lambda function in ReceiverAccount assumes to gain across-account resource access, in this case resources from SendingAccount
 
 Therefore, follow these instructions:
 
-1.    In ReceivingAccount - Attach the following IAM policy to your Lambda function's execution, LambdaAdmin, role to assume the role "LambdaExecute" in SendingAccount:
+1.    **In ReceivingAccount** - Attach the following IAM policy to your Lambda function's role "LambdaAdmin" to assume the role "LambdaExecute" in SendingAccount:
 
 Note: Replace 222222222222 with the AWS account ID of SendingAccount.
 
@@ -136,7 +141,7 @@ Note: Replace 222222222222 with the AWS account ID of SendingAccount.
     }
 }
 ```
-or to allow any member account from the organization let us just tack the "*" wild card in Aws account ID
+or to allow any member account from the organization let us just tack the "*" in the Resource value.
 
 ```json
 
@@ -150,9 +155,9 @@ or to allow any member account from the organization let us just tack the "*" wi
 }
 ```
 
-Is noteworthy to say you should keep consistency the Role name created in the Different Accounts of your Organization. For this document we chose to name the Role in SendingAccount, LambdaExecute, for clarity purposes.
+Is noteworthy to say you should keep consistency the Role name created in the Different Accounts of your Organization to use this policy when setting any other region in any other account. For this document we chose to name the Role in SendingAccount, LambdaExecute, for clarity purposes.
 
-2.    In ReceivingAccount - Edit the trust relationship of the assumed role in with the following Json:
+2.    **In ReceivingAccount** - Edit the trust relationship of the assumed role in with the following Json:
 
 Note: Replace 111111111111 with the AWS account ID of ReceivingAccount.
 ```json
@@ -170,9 +175,10 @@ Note: Replace 111111111111 with the AWS account ID of ReceivingAccount.
 }
 ```
 # Deploy a VPC in SendingAccount
+Either by console or by AWS CLi SDK for boto3 deploy a Vpc or any resource that you desire.
 
 # 8 Check the tags
-We check for the tag managment of the resources newly deployed from Account B and verify that a tag with the user ID is present to ensure the proper functioning of the Lambda Tagging function
+Once the deployment process is done we check the tags of the resources newly deployed and verify that there exist a tag with the user ID  and the arn with the creator. That is phow we  ensure the proper functioning of the Lambda AutoTagging function.
 
 
 # Note: If you want to implement the function in different regions, repeat steps 3 to 7
