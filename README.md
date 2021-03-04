@@ -1,6 +1,6 @@
 # Username-Tag-Creator
 
-We assume You and AWS organization set in place with all the neccesary permissions to ensure that resource creation events and all related info are to be passed between the accounts of the organization. For the sake of this document the ID of our organization is o-yvQk5gerjaja 
+We assume You and AWS organization set in place with all the neccesary permissions to ensure that resource creation events and all related info are to be passed between the accounts of the organization. For the sake of this document the ID of our organization is o-myexampleOrgId 
 
 TagCreator Lambda function creates labels with the creator ID to track who did what. This is a highly valuable feature to help us keep track of our resources and reduce the time consuming resource management. We will deploy a pair of lambda functions; ExtractSns and TagCreatorId, in the us-east-1 region in Security Account that we will call ReceiverAccount in our organization to centralize the control and tagging of our resources being deployed in any account of the organization. Also, we will adress the Member Account which is sending the event as SenderAccount to help with the clarity of this doc. Ideally, our lambdas in the ReceiverAccount are fired when any AWS resource is deployed in any SenderAccount either by using the console or the AWS SDK for Python (Boto3). Once the resource is deployed Cloudwatch captures and sends the event through Event Buses to a matching Event Bus in ReceiverAccount. From Cloudwatch-Event Buses in ReceiverAccount to a Topic SNS named  that sends a string with the event info to the ExtractSns function allowing it to be executed from any region within ReceiverAccount, we need this intermedial lambda because Tagcreator only processes events in Json format and we must convert the string sent by SnsSendToLambda back to json format . the aforementioned lambda passes the event to TagCreator function to process the event .- say RunInstances and created the tags with a Key/value as instructed by the code , in our case UserName = UserNamehere. This sequence of sns topic - lambdas our Tag-Creator in ReceiverAccount ensures that if we deploy a VPC with a route table, both resources will get a tag with the use name who did the deployment. 
 
@@ -22,21 +22,39 @@ Create or import lambda functions:
 
 # 3. Bind lambda functions through target
 
-.When the ExtractSNS function does its job correctly it invokes and return the CloudWatch event to TagCreatorId function. In ExtractSNS configuration we go to "add destination" and in Destination configuration select source > Asynchronous invocation, Condition > On success, Destination type > Lambda function, in Destination select TagCreatorId. Hit Save
+When the ExtractSNS function does its job correctly it invokes and return the CloudWatch event to TagCreatorId function. In ExtractSNS configuration we go to "add destination" and in Destination configuration select source > Asynchronous invocation, Condition > On success, Destination type > Lambda function, in Destination select TagCreatorId. Hit Save
 
-# 4. Create SNS Topic "SnsSendToLambda" and Subscribe Lambda Function "ExtractSNS" in us-east-1 in ReceiverAccount
+# 4. Create SNS Topic "SnsSendToLambda" and Subscribe Lambda Function "ExtractSNS" in us-east-2 in ReceiverAccount
 
-Why we need SNS Topic "SnsSendToLambda"? CloudWatch enable us to pass events to any region by targeting SNS Topics.  SnsSendToLambda will be deploy in us-east-1 (Virgina) which it is where we have deployed our Lambdas and  our SNS topic. Let us keep in mind that Cloudwatch events only passes events between matchin regions across accounts. So, If a vpc deployment happens in us-east-2 in SenderAcccount this event is captured by cloudwatch event buses in us-east-2 will be passed to a matching event busesto CloudWatch in the ReceipentAccount in us-east-2. Hence, our event info already is in ReceiverAccount, yet in us-east-2 (Ohio region). We can forward the event to our lambdas in us-east-1 by targeting SNS topic that may be located in another region in Cloudwatch. 
+Why we need SNS Topic "SnsSendToLambda"? CloudWatch enable us to pass events to any region by targeting SNS Topics.  SnsSendToLambdaOhio will be deploy in us-east-2 (Ohio) and still sends a string to resources deployed in us-east-1 (Virginia) which it is where we have deployed our Lambdas. Let us keep in mind that Cloudwatch events only passes events between matchin regions across accounts. So, If a vpc deployment happens in us-east-2 in SenderAcccount, this event is then captured by cloudwatch event buses in us-east-2 will be passed to a matching event buses to CloudWatch in the ReceipentAccount in us-east-2. Hence, our event info already is in ReceiverAccount, yet in us-east-2 (Ohio region). We can forward the event to our lambdas in us-east-1 by using SNS topic to pass the message in a form of a string to resources that may be located in a different region.
 
-Create a Sns Topic called SnsSendToLambda in us-east-1 in ReceiverAccount with the necessary permissions to publish messages in the Lambda function and subscribe it to ExtractSNS lambda function. 
+Ergo, create a Sns Topic called SnsSendToLambda in us-east-1 in ReceiverAccount with the necessary permissions to publish messages to a Lambda function; use aws lambda and select ExtractSNS as endpoint , and hit "Create Subscription".
 
-Create a subscription to SnsSendToLambda with protocol aws lambda and type as endpoint ExtractSNS, and hit "Create Subscription".
+# 5. Add the necessary permissions in Event Buses in ReceiverAccount in the matching region (for this example us-east-2)
+ Add an Event Buses Permission that allows Receiver Account to get all events from all the accounts in the organization.In Cloudwatch in us-east-2 go to the Event Buses tab in the menu. After, add a new permission. Type = Organization and Organization ID =  o-myexampleOrgId, and hit add.
 
-# 4. Add the necessary permissions in Event Buses in Account A
- Add an Event Buses Permission hat allows account A to receive all events from all the accounts in the organization
+# 5 Create a CloudWatch event Rule (in us-east-2) and link it to the SNS topic "SnsSendToLambdaOhio" (in us-east-2) in ReceiverAccount
+ Create event pattern that captures all creation events using AWS API Call via CloudTrail and select the previously created Topic SNS. 
+In the CloudWacht menu select Rules, In Rules, click Create Rule button, and choose "Custom Event Pattern" and attach this json:
 
-# 5 Create CloudWatch event Rule and link to the SNS topic in Account A
- Create event pattern that captures all creation events using AWS API Call via CloudTrail and select the previously created Topic SNS as destination
+```json
+{
+  "source": [
+    "*"
+  ],
+  "detail-type": [
+    "AWS API Call via CloudTrail"
+  ],
+  "detail": {
+    "eventSource": [
+      "*"
+    ]
+  }
+}
+```
+
+In Targets choose "SNS Topic" and select "SnsSendToLambdaOhio"
+
 
 # 6  Create a CloudWatch event Rule in Account B and link it to event Bus in Account A
 Create an event pattern the same as the previous one and select as Target the Event bus in Account A since this is where we are parking the SNS Topic that ultimately sends the message with the event to the lambda function, Select as Target "Event bus in another AWS Account, Provide the id of account A and create a new role for the execution of the event bus, Cloud Watch does it for you...yeah nice with the appropiate permissions
