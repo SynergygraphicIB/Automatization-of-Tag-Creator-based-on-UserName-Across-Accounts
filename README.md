@@ -31,9 +31,31 @@ Why we need SNS Topic "SnsSendToLambda"? CloudWatch enable us to pass events to 
 Ergo, create a Sns Topic called SnsSendToLambda in us-east-1 in ReceiverAccount with the necessary permissions to publish messages to a Lambda function; use aws lambda and select ExtractSNS as endpoint , and hit "Create Subscription".
 
 # 5. Add the necessary permissions in Event Buses in ReceiverAccount in the matching region (for this example us-east-2)
- Add an Event Buses Permission that allows Receiver Account to get all events from all the accounts in the organization.In Cloudwatch in us-east-2 go to the Event Buses tab in the menu. After, add a new permission. Type = Organization and Organization ID =  o-myexampleOrgId, and hit add.
+CloudWatch has a default Event Bus and it is stateless, it means we have to set the permissions for it to start to receive events from our organization. Therefore we add a  Event Buses Permission that allows CloudWatch in  ReceiverAccount to get all events from any account in the organization.
+In Cloudwatch in us-east-2 go to the Event Buses tab in the menu. After, add a new permission. Type = Organization and Organization ID =  o-myexampleOrgId, and hit add. By this action the default event bus in EventBridge will get a policy with permissions enough to receive event calls from any account in the organization. 
+ 
+The default event bus name is something like this - arn:aws:events:us-east-2:111111111111:event-bus/default
 
-# 5 Create a CloudWatch event Rule (in us-east-2) and link it to the SNS topic "SnsSendToLambdaOhio" (in us-east-2) in ReceiverAccount
+And the resulting Json policy would look something like this:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "7abc6140-77a4-11eb-bd25-3d06a7f5b3fb1614283388244",
+    "Effect": "Allow",
+    "Principal": "*",
+    "Action": "events:PutEvents",
+    "Resource": "arn:aws:events:us-east-2:1111111111:event-bus/default",
+    "Condition": {
+      "StringEquals": {
+        "aws:PrincipalOrgID": "o-myexampleOrgId"
+      }
+    }
+  }]
+}
+```
+
+# 5 In ReceiverAccount in us-east-2 Create a CloudWatch event Rule and link it to the SNS topic "SnsSendToLambdaOhio" also in us-east-2)
  Create event pattern that captures all creation events using AWS API Call via CloudTrail and select the previously created Topic SNS. 
 In the CloudWacht menu select Rules, In Rules, click Create Rule button, and choose "Custom Event Pattern" and attach this json:
 
@@ -44,31 +66,46 @@ In the CloudWacht menu select Rules, In Rules, click Create Rule button, and cho
   ],
   "detail-type": [
     "AWS API Call via CloudTrail"
-  ],
-  "detail": {
-    "eventSource": [
-      "*"
-    ]
   }
 }
 ```
 
-In Targets choose "SNS Topic" and select "SnsSendToLambdaOhio"
+In Targets configure rule details, in name type "SnsSendToLambdaOhio", you may add a description if you choose to, and click "Create Rule"
 
+# 6  In SenderAccount create a matching CloudWatch event Rule in same region (we are using us-east-2 - Ohio Region) and link it to event Bus in matching region in ReceiverAccount.
 
-# 6  Create a CloudWatch event Rule in Account B and link it to event Bus in Account A
-Create an event pattern the same as the previous one and select as Target the Event bus in Account A since this is where we are parking the SNS Topic that ultimately sends the message with the event to the lambda function, Select as Target "Event bus in another AWS Account, Provide the id of account A and create a new role for the execution of the event bus, Cloud Watch does it for you...yeah nice with the appropiate permissions
+Create an event pattern the same as the previous one and select as Target the default Event bus in Receveiver Account. Here there the SNS Topic "SnsSendToLambdaOhio" that ultimately sends the message to the lambda function "ExtractSnS". Select as Target "Event bus in another AWS Account, Provide the id of ReceiverAccount and create a new role for the execution of the event bus, CloudWatch does it for you...yeah nice with the appropiate permissions
+A new Role is created with the following permissions:
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "events:PutEvents"
+            ],
+            "Resource": [
+                "arn:aws:events:us-east-2:111111111111:event-bus/default"
+            ]
+        }
+    ]
+}
+```
+Note: For this example the account Id for ReceiverAccount is 11111111111111. Replace that number for your receiver account ID.
 
-# 7 Setting up the appropiate permsissions to a Lambda Execution Role in Account A and Assume Role in account B
+# 7 Setting up the appropiate permsissions to a Lambda Execution Role in ReceiverAccount and Assume a Role in SenderAccount
 If you haven't already, configure these two AWS Identity and Access Management (IAM) roles:
 
-LambdaAdminAccountA – The primary role in account A that gives the Lambda function permission to do its work.
-The Assumed role – a role in account B, Say LambdaExecuteAccountB  that the Lambda function in account A assumes to gain access to cross-account resources, in this case resources from Account B.
-Then, follow these instructions:
+LambdaAdmin in ReceiverAccount – The primary role in receiver account that gives the Lambda function permission to do its work.
+The Assumed role – a role in SenderAccount; say LambdaExecute  that the Lambda function in ReceiverAccount assumes to gain across-account resource access, in this case resources from SendingAccount
 
-1.    In Account A - Attach the following IAM policy to your Lambda function's execution role to assume the role in account B:
+Therefore, follow these instructions:
 
-Note: Replace 222222222222 with the AWS account ID of account B.
+1.    In ReceivingAccount - Attach the following IAM policy to your Lambda function's execution, LambdaAdmin, role to assume the role "LambdaExecute" in SendingAccount:
+
+Note: Replace 222222222222 with the AWS account ID of SendingAccount.
+
 ```json
 
 {
@@ -76,15 +113,29 @@ Note: Replace 222222222222 with the AWS account ID of account B.
     "Statement": {
         "Effect": "Allow",
         "Action": "sts:AssumeRole",
-        "Resource": "arn:aws:iam::222222222222:role/LambdaExecuteAccountB"
+        "Resource": "arn:aws:iam::222222222222:role/LambdaExecute"
     }
 }
 ```
-Is noteworthy to say you should keep consistency the Role name created in the Different Accounts of your Organization. For this document we chose to name the Role in account B, LambdaExecuteAccountB, for clarity purposes.
+or to allow any member account from the organization let us just tack the "*" wild card in Aws account ID
 
-2.    In Account B - Edit the trust relationship of the assumed role in with the following Json:
+```json
 
-Note: Replace 111111111111 with the AWS account ID of account A.
+{
+    "Version": "2012-10-17",
+    "Statement": {
+        "Effect": "Allow",
+        "Action": "sts:AssumeRole",
+        "Resource": "arn:aws:iam::*:role/LambdaExecute"
+    }
+}
+```
+
+Is noteworthy to say you should keep consistency the Role name created in the Different Accounts of your Organization. For this document we chose to name the Role in SendingAccount, LambdaExecute, for clarity purposes.
+
+2.    In ReceivingAccount - Edit the trust relationship of the assumed role in with the following Json:
+
+Note: Replace 111111111111 with the AWS account ID of ReceivingAccount.
 ```json
 
 "Version": "2012-10-17",
@@ -92,13 +143,14 @@ Note: Replace 111111111111 with the AWS account ID of account A.
         {
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::111111111111:role/LambdaAdminAccountA"
+                "AWS": "arn:aws:iam::111111111111:role/LambdaAdmin"
             },
             "Action": "sts:AssumeRole"
         }
     ]
 }
 ```
+# Deploy a VPC in SendingAccount
 
 # 8 Check the tags
 We check for the tag managment of the resources newly deployed from Account B and verify that a tag with the user ID is present to ensure the proper functioning of the Lambda Tagging function
