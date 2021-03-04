@@ -1,20 +1,20 @@
-**Automatization for Tag Creation with the Username ARN and ID:**
+# Automatization for Tag Creation with the Username ARN and ID:
 
 We already have to have an AWS organization set in place with all the neccesary permissions accross accounts to ensure that resource creation events and all related event calls are to be passed between the accounts of the organization. 
 At least two accounts. A ReceiverAccount with ID 111111111111 and a SenderAccount with ID 222222222222. For the sake of this document the ID of our organization is o-myexampleOrgId 
 
-**List of Resources Used or Deployed**
-IAM Roles
-LambdaAdmin - Role with the necessary permissions to enable the Lambda functions to perform the task with want them to do In ReceiverAccount
-LambdaExecute - Role we create in SenderAccount with to be assumed by LambdaAdmin from ReceiverAccount to get the creation events.
-Sns Topics
-SnsSendToLambdaOhio - We deploy this Sns Topic in us-east-2 in Reciever account to send the creation event to ExtracSns to us-east-1. Sns topics allow us to send events across regions.
-Lambda functions
-ExtractSns - Converts the string coming from the Sns Topic "SnsSendToLambdaOhio" back into Json. It has as target destination TagCreatorId Lambda Function.
-TagCreatorId- creates tags with the creator ID and arn to track who did what. This is a highly valuable feature to help keep tracking resources and reduce the time consuming resource management. 
+## List of Resources Used or Deployed
+### IAM Roles
+**LambdaAdmin** - Role with the necessary permissions to enable the Lambda functions to perform the task with want them to do In ReceiverAccount
+**LambdaExecute** - Role we create in SenderAccount with to be assumed by LambdaAdmin from ReceiverAccount to get the creation events.
+### Sns Topics
+**SnsSendToLambdaOhio** - We deploy this Sns Topic in us-east-2 in Reciever account to send the creation event to ExtracSns to us-east-1. Sns topics allow us to send events across regions.
+### Lambda functions
+**ExtractSns** - Converts the string coming from the Sns Topic "SnsSendToLambdaOhio" back into Json. It has as target destination TagCreatorId Lambda Function.
+**TagCreatorId**- creates tags with the creator ID and arn to track who did what. This is a highly valuable feature to help keep tracking resources and reduce the time consuming resource management. 
 CloudWatch Rules - We create a rule to capture events in us-east-2 in sender account and in the receiver account also in us-east-2. also we have to add a permission to allow even buses to pass events in the organization and edit trust relationships. 
 
-**How does it work?** 
+## How does it work? 
 We will pass a deployment event in us-east-2 in SenderAccount to lambda functions in us-east-1 in a ReceiverAccount to create tags onto the resources newly deployed the ReceivingAccount. So, we have to create a pipeline to make this posible.
 We will deploy a pair of lambda functions; ExtractSns and TagCreatorId in the us-east-1 region in a designated account that we will be ReceiverAccount in our organization. The purpose is to centralize the control and tagging of resources being deployed in any member account of the organization. Also, we will use the Member Account which will be sending the creation event calls as SenderAccount to help you to follow this tutorial. 
 When properly set our lambdas in the ReceiverAccount are fired when any AWS resource is deployed by SenderAccount either by using the console or the AWS SDK for Python (Boto3). The Process begins this way; a Vpc is deployed, then Cloudwatch captures and sends the event through Event Buses to a matching Event Bus in ReceiverAccount in the same region. From ReceiverAccount in us-east-2, Cloudwatch-Event Buses sends it to a Topic SNS named "SnsSendToLambdaOhio" (also in us-east-2) that sends a string with the event info to the ExtractSns function (that is in us-east-1). With this setting we allowteh call event to be passed from the Ohio to Virginia region within ReceiverAccount. Then we can repeat the same process for the other regions that apply.
@@ -32,11 +32,11 @@ We set our lambda functions in virginia region or us-east-1. Any deployment even
 
 We use the role, LambdaAdmin,  for the lambda functions to extract the Sns message and create the tags.
 
-Create or import lambda functions:
+## Create or import lambda functions:
 
-1. ExtractSns: extracts the message of the event coming from Sns Topics which is a form of a string and return the cloudwatch event back in Json format.  
+**1. ExtractSns:** extracts the message of the event coming from Sns Topics which is a form of a string and return the cloudwatch event back in Json format.  
 
-2. TagCreatorId: It only runs when resource creation events happen. Using rescursivity search and extracts all the creation ids of the event to create the tag of who executed the deployment whether it was an access role (Remember we are using Access Roles to jump to any account in the organization from the master account) or an IAM user.
+**2. TagCreatorId:** It only runs when resource creation events happen. Using rescursivity search and extracts all the creation ids of the event to create the tag of who executed the deployment whether it was an access role (Remember we are using Access Roles to jump to any account in the organization from the master account) or an IAM user.
 
 # 3. Bind lambda functions through target
 
@@ -44,13 +44,13 @@ In ExtractSns - When the ExtractSNS function does its job correctly it invokes a
 
 # 4. Create SNS Topic "SnsSendToLambdaOhio" and Subscribe it to Lambda Function "ExtractSNS" in us-east-2 in ReceiverAccount
 
-Why we need SNS Topic "SnsSendToLambda"?
+## Why we need SNS Topic "SnsSendToLambda"?
 CloudWatch enable us to use SNS Topics to pass events to any resource targets in another region.  SnsSendToLambdaOhio will be deploy in us-east-2 (Ohio) and is capable to send a message in a form of a string to resources deployed in us-east-1 such as our Pair of Lambda; which it are the ones who combined do the auto-tagging process.  Once our event info already is in CloudWatch ReceiverAccount (yet in us-east-2) we forward the event to our lambdas in us-east-1 by using SNS topic.
 
 Create a Sns Topic called SnsSendToLambda in us-east-1 in ReceiverAccount with the necessary permissions to publish messages to a Lambda function; use aws lambda and select ExtractSNS as endpoint , and hit "Create Subscription".
 
 # 5. Add the necessary permissions in Event Buses in ReceiverAccount in the matching region (for this example us-east-2)
-We need to add permissions in Event Buses but Why? 
+## We need to add permissions in Event Buses but Why? 
 Cloudwatch events only passes events between matching regions across accounts. So, If a vpc deployment happens in us-east-2 in SenderAcccount, this event is then captured by cloudwatch event buses in us-east-2 and it is passed to a matching event buses to CloudWatch in the ReceipentAccount in us-east-2.
 
 CloudWatch has a default Event Bus and it is stateless, it means that we have to set the permissions for it to start to receive events from our organization. Therefore, we add the Permission to get all events from any account in the organization.
@@ -89,7 +89,7 @@ In the CloudWacht menu select Rules, In Rules, click Create Rule button, and cho
   ],
   "detail-type": [
     "AWS API Call via CloudTrail"
-  }
+  ]
 }
 ```
 
@@ -115,7 +115,7 @@ A new Role is automatically created with the following permissions:
     ]
 }
 ```
-Note: If you choose to create your own role you can use this example. Here, the account Id for ReceiverAccount is 11111111111111. Replace that number for your receiver account ID with your own designated receiver account.
+**Note:** If you choose to create your own role you can use this example. Here, the account Id for ReceiverAccount is 11111111111111. Replace that number for your receiver account ID with your own designated receiver account.
 
 # 7 Setting up the appropiate permsissions to a Lambda Execution Role in ReceiverAccount to Assume a Role in the SenderAccount
 If you haven't already, configure these two AWS Identity and Access Management (IAM) roles:
@@ -128,7 +128,7 @@ Therefore, follow these instructions:
 
 1.    **In ReceivingAccount** - Attach the following IAM policy to your Lambda function's role "LambdaAdmin" to assume the role "LambdaExecute" in SendingAccount:
 
-Note: Replace 222222222222 with the AWS account ID of SendingAccount.
+**Note:** Replace 222222222222 with the AWS account ID of SendingAccount.
 
 ```json
 
@@ -159,7 +159,7 @@ Is noteworthy to say you should keep consistency the Role name created in the Di
 
 2.    **In ReceivingAccount** - Edit the trust relationship of the assumed role in with the following Json:
 
-Note: Replace 111111111111 with the AWS account ID of ReceivingAccount.
+**Note:** Replace 111111111111 with the AWS account ID of ReceivingAccount.
 ```json
 
 "Version": "2012-10-17",
@@ -181,7 +181,7 @@ Either by console or by AWS CLi SDK for boto3 deploy a Vpc or any resource that 
 Once the deployment process is done we check the tags of the resources newly deployed and verify that there exist a tag with the user ID  and the arn with the creator. That is phow we  ensure the proper functioning of the Lambda AutoTagging function.
 
 
-# Note: If you want to implement the function in different regions, repeat steps 3 to 7
+### Note: If you want to implement the function in different regions, repeat steps 3 to 7
 
 
 
