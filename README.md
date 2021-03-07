@@ -47,7 +47,8 @@ In ExtractSns - When the ExtractSNS function does its job correctly it invokes a
 ## Why we need SNS Topic "SnsSendToLambda"?
 CloudWatch enable us to use SNS Topics to pass events to any resource targets in another region.  SnsSendToLambdaOhio will be deploy in us-east-2 (Ohio) and is capable to send a message in a form of a string to resources deployed in us-east-1 such as our Pair of Lambda; which it are the ones who combined do the auto-tagging process.  Once our event info already is in CloudWatch ReceiverAccount (yet in us-east-2) we forward the event to our lambdas in us-east-1 by using SNS topic.
 
-Create a Sns Topic called SnsSendToLambdaOhio in us-east-2 in ReceiverAccount with the necessary permissions and them a subscription to publish messages to a Lambda function; use aws lambda and select ExtractSNS as endpoint , and hit "Create Subscription".
+Create a Sns Topic called SnsSendToLambdaOhio in us-east-2 in ReceiverAccount with the necessary permissions.
+Them create a subscription to publish messages to a Lambda function; select SnsSendToLambdaOhio as Topic ARN, use AWS lambda as Protocol, and select ExtractSNS as endpoint , and hit "Create Subscription".
 
 # 5. Add the necessary permissions in Event Buses in ReceiverAccount in the matching region (for this example us-east-2)
 ## We need to add permissions in Event Buses but Why? 
