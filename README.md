@@ -182,7 +182,7 @@ Either by console or by AWS CLi SDK for boto3 deploy a Vpc or any resource that 
 Once the deployment process is done we check the tags of the resources newly deployed and verify that there exist a tag with the user ID  and the arn with the creator. That is phow we  ensure the proper functioning of the Lambda AutoTagging function.
 
 
-### Note: If you want to implement the function in different regions, repeat steps 3 to 7
+### Note: If you want to implement the function in different regions, repeat steps 4 to 6 and replace the region values as applicable
 
 
 
