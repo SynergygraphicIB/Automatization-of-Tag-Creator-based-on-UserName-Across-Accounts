@@ -8,7 +8,7 @@ At least two accounts. A ReceiverAccount with ID 111111111111 and a SenderAccoun
 **LambdaAdmin** - Role with the necessary permissions to enable the Lambda functions to perform the task with want them to do In ReceiverAccount
 **LambdaExecute** - Role we create in SenderAccount with to be assumed by LambdaAdmin from ReceiverAccount to get the creation events.
 ### Sns Topics
-**SnsSendToLambdaOhio** - We deploy this Sns Topic in us-east-2 in Reciever account to send the creation event to ExtracSns to us-east-1. Sns topics allow us to send events across regions.
+**SendEventToExtractSnsLambda** - We deploy this Sns Topic in us-east-2 in Reciever account to send the creation event to ExtracSns to us-east-1. Sns topics allow us to send events across regions.
 ### Lambda functions
 **ExtractSns** - Converts the string coming from the Sns Topic "SnsSendToLambdaOhio" back into Json. It has as target destination TagCreatorId Lambda Function.
 **TagCreatorId**- creates tags with the creator ID and arn to track who did what. This is a highly valuable feature to help keep tracking resources and reduce the time consuming resource management. 
