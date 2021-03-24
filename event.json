@@ -1,5 +1,17 @@
 {
   "detail-type": [
     "AWS API Call via CloudTrail"
-  ]
+  ],
+  "detail": {
+    "eventName": [
+      {
+        "prefix": "Create"
+      },
+      {
+        "prefix": "Put"
+      },
+      "RunInstances",
+      "AllocateAddress"
+    ]
+  }
 }
