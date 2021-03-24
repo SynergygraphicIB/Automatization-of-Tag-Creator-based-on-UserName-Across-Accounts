@@ -16,6 +16,8 @@ all ec2 services, S3, CloudTrail, CloudWatch, System Manager, Code Pipeline, Cod
 ### IAM Roles
 We need the AutoTagging Lambda in receiver account permission to assume a role from a linked account to access resources, such as Ec2, S3, SNS. And  
 **AutoTaggingMasterLambda** - Resource Role to give permission to lambda autotagging function in receiver account to assume role in linked account with AWS STS service
+```json
+
 {
     "Version": "2012-10-17",
     "Statement": {
@@ -23,11 +25,15 @@ We need the AutoTagging Lambda in receiver account permission to assume a role f
         "Action": "sts:AssumeRole",
         "Resource": "arn:aws:iam::*:role/AutoTaggingExecuteLambda"
     }
-} 
+}
+```
+
 This is a least privledge AWS STS  policy. Notice the "*" in the resource arn, instead typing the linked account number we do the asterisk wildcard in order to enable any linked account in the organization as long as we always use the same role name "AutoTaggingExecuteLambda" en each linked account.
 
 **AutoTaggingExecuteLambda** - Role we create in every linked account whose policy only has limited permissions to do the tagging of newly deployed resources. This is the role that  AutoTaggingMasterLambda from Receiver Account assumes to make possible the recollection of creation events across accounts.
 See AutoTagginPolicy.json
+```json
+
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -100,6 +106,7 @@ See AutoTagginPolicy.json
     ]
 }
 
+```
 ### Sns Topics
 **AutoTaggingSNS** - This SNSTopic that are to be deployed in every active region of the Receiver Account to .  This is to centralize event collection across regions thoughout the organzation. {needs more descriptions}
 
