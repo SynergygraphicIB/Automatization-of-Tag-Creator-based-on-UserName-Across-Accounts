@@ -1,18 +1,114 @@
 # Automatization for Tag Creation with the Username ARN and ID:
-
-We already have to have an AWS organization set in place with all the neccesary permissions accross accounts to ensure that resource creation events and all related event calls are to be passed between the accounts of the organization. 
-At least two accounts. A ReceiverAccount with ID 111111111111 and a SenderAccount with ID 222222222222. For the sake of this document the ID of our organization is o-myexampleOrgId 
+This is an open-source solution to Deploy AutoTagging using CloudTrail and channel the event invoke through Cloudwatch Events and EventBrigdge across accounts to a Lambda to tag resources at the moment of creation with the arn of who created, the username ID, and the time of creation. Insofar we have the following services sucessfully tested for auto-tag creation; 
+all ec2 services, S3, CloudTrail, CloudWatch, System Manager, Code Pipeline, CodeBuild, Sns, Sqs, IAM, and Cloudformation. Each of those services get a tag with Creator ID, the ARN, and Time of Creation.
+### PreFlight Check
+1. Intermedial level in Python. So you can adapt and customized the .py files to your needs
+2. Basic to intermedial Understanding about how to edit json policies in CloudWatch Rules to change the rule filters base on your use cases since we have not cover every single resource in AWS.
+3. An existing AWS Organization
+2. A Resource Access Manager (RAM) enabled for the organization
+3. One account to centralize the receiving of all creation events known as the "Receiver Account", In our case we deploy or AutoTagging Lambda in the central account to do the tagging.
+4. In Every other linked/ sender  account included in your organization will need the following
+    A. Cloudwatch log group collecting cloudtrail for every region.
+    B. Cloudwatch eventbridge for every region for Receiver account and in the linked accounts in order to create a pipeline to pass the create events from the source region in any linked account to the lambda function in us-east-1 in central or receiving account.
 
 ## List of Resources Used or Deployed
+
 ### IAM Roles
-**LambdaAdmin** - Role with the necessary permissions to enable the Lambda functions to perform the task with want them to do In ReceiverAccount
-**LambdaExecute** - Role we create in SenderAccount with to be assumed by LambdaAdmin from ReceiverAccount to get the creation events.
+We need the AutoTagging Lambda in receiver account permission to assume a role from a linked account to access resources, such as Ec2, S3, SNS. And  
+**AutoTaggingMasterLambda** - Resource Role to give permission to lambda autotagging function in receiver account to assume role in linked account with AWS STS service
+{
+    "Version": "2012-10-17",
+    "Statement": {
+        "Effect": "Allow",
+        "Action": "sts:AssumeRole",
+        "Resource": "arn:aws:iam::*:role/AutoTaggingExecuteLambda"
+    }
+} 
+This is a least privledge AWS STS  policy. Notice the "*" in the resource arn, instead typing the linked account number we do the asterisk wildcard in order to enable any linked account in the organization as long as we always use the same role name "AutoTaggingExecuteLambda" en each linked account.
+
+**AutoTaggingExecuteLambda** - Role we create in every linked account whose policy only has limited permissions to do the tagging of newly deployed resources. This is the role that  AutoTaggingMasterLambda from Receiver Account assumes to make possible the recollection of creation events across accounts.
+See AutoTagginPolicy.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "sqs:UntagQueue",
+                "logs:*",
+                "iam:TagMFADevice",
+                "codepipeline:ListTagsForResource",
+                "cloudformation:UpdateStackSet",
+                "cloudformation:CreateChangeSet",
+                "iam:TagSAMLProvider",
+                "codebuild:UpdateProject",
+                "s3:DeleteJobTagging",
+                "ssm:RemoveTagsFromResource",
+                "cloudtrail:AddTags",
+                "ssm:AddTagsToResource",
+                "codepipeline:GetPipeline",
+                "cloudformation:UpdateStack",
+                "s3:PutObjectTagging",
+                "s3:DeleteObjectTagging",
+                "iam:UntagSAMLProvider",
+                "s3:DeleteStorageLensConfigurationTagging",
+                "ec2:CreateTags",
+                "ssm:GetParameters",
+                "s3:DeleteObjectVersionTagging",
+                "iam:TagPolicy",
+                "codepipeline:UntagResource",
+                "cloudformation:UntagResource",
+                "resource-explorer:*",
+                "sns:TagResource",
+                "mediastore:UntagResource",
+                "cloudformation:UpdateStackInstances",
+                "iam:UntagRole",
+                "ec2:DeleteTags",
+                "codepipeline:CreatePipeline",
+                "iam:TagRole",
+                "s3:ReplicateTags",
+                "cloudformation:UpdateTerminationProtection",
+                "codepipeline:CreateCustomActionType",
+                "sns:UntagResource",
+                "codepipeline:TagResource",
+                "s3:PutBucketTagging",
+                "tag:*",
+                "codebuild:BatchGetProjects",
+                "s3:PutStorageLensConfigurationTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:PutJobTagging",
+                "iam:UntagServerCertificate",
+                "iam:TagUser",
+                "iam:UntagUser",
+                "sqs:TagQueue",
+                "ssm:ListTagsForResource",
+                "iam:UntagMFADevice",
+                "iam:TagServerCertificate",
+                "cloudformation:TagResource",
+                "iam:UntagPolicy",
+                "iam:UntagOpenIDConnectProvider",
+                "iam:UntagInstanceProfile",
+                "iam:TagOpenIDConnectProvider",
+                "mediastore:TagResource",
+                "codepipeline:PutWebhook",
+                "cloudtrail:RemoveTags",
+                "iam:TagInstanceProfile"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+
 ### Sns Topics
-**SendEventToExtractSnsLambda** - We deploy this Sns Topic in us-east-2 in Reciever account to send the creation event to ExtracSns to us-east-1. Sns topics allow us to send events across regions.
+**AutoTaggingSNS** - This SNSTopic that are to be deployed in every active region of the Receiver Account to .  This is to centralize event collection across regions thoughout the organzation. {needs more descriptions}
+
 ### Lambda functions
-**ExtractSns** - Converts the string coming from the Sns Topic "SnsSendToLambdaOhio" back into Json. It has as target destination TagCreatorId Lambda Function.
-**TagCreatorId**- creates tags with the creator ID and arn to track who did what. This is a highly valuable feature to help keep tracking resources and reduce the time consuming resource management. 
-CloudWatch Rules - We create a rule to capture events in us-east-2 in sender account and in the receiver account also in us-east-2. also we have to add a permission to allow even buses to pass events in the organization and edit trust relationships. 
+**ExtractSns** - Converts the string coming from the Sns Topic "SnsSendToLambda" back into Json. It has as target destination TagCreatorId Lambda Function.  This will need to be deployed into the Receiver account {This needs to point to the lambda code needed to deploy}
+
+**TagCreatorId** - creates tags with the creator ID and arn to track who did what. This is a highly valuable feature to help keep tracking resources and reduce the time consuming resource management. This will need to be deployed into the Receiver account {This needs to point to the lambda code needed to deploy}
+
+**CloudWatch Rules** - This needs to get deployed into all accounts all regions {needs to show what event needs to be built}
 
 ## How does it work? 
 We will pass a deployment event in us-east-2 in SenderAccount to lambda functions in us-east-1 in a ReceiverAccount to create tags onto the resources newly deployed the ReceivingAccount. So, we have to create a pipeline to make this posible.
@@ -22,35 +118,39 @@ We need a intermedial"SnsSendToLambdaOhio" SNS topic to "ExtractSNS" Lambda Func
 As conclusion, this sequence of Cloudwatch - Event Buses - sns topics -and lambda functions from SenderAccount to ReceiverAccount ensures that if we deploy a VPC with a route table in any region from any account in the organization the resources will get a tag with the user name who did the deployment automatically.
 You can repeate these steps in any regions and any accounts that apply.
 
-# 1. Create a Role in ReceiverAccount
+# 1. Create a Role in Receiver Account
 
-We create a role in ReceiverAccount with enough permissions to assume role, security token services and create tags. Let us call our Role LambdaAdmin. if you are not too proficient about how to define policies in json just attach AdministratorAccess permission policy to the role.
+We create a role in ReceiverAccount with enough permissions to assume role, security token services and create tags. Let us call our Role LambdaAdmin. if you are not too proficient about how to define policies in json just attach AdministratorAccess* permission policy to the role. * = not recommended in production {include screenshot(s)}
 
-# 2. Deploy Lambda Functions in ReceiverAccount
+# 2. Deploy Lambda Functions in Receiver Account
 
-We set our lambda functions in virginia region or us-east-1. Any deployment event from any region from any sender account within the organization gets sent to the matching region in RecepientAccount. Once the event is ReceiverAccount from CloudWatch in any region the event is sent to our lambdas thru Sns Topic to ExtractSns Lambda Function.
+We set our lambda functions in virginia region or us-east-1. Any deployment event from any region from any sender account within the organization gets sent to the matching region in RecepientAccount. Once the event is ReceiverAccount from CloudWatch in any region the event is sent to our lambdas thru Sns Topic to ExtractSns Lambda Function. {include screenshot(s)}
 
 We use the role, LambdaAdmin,  for the lambda functions to extract the Sns message and create the tags.
 
 ## Create or import lambda functions:
 
-**1. ExtractSns:** extracts the message of the event coming from Sns Topics which is a form of a string and return the cloudwatch event back in Json format.  
+**1. ExtractSns:** extracts the message of the event coming from Sns Topics which is a form of a string and return the cloudwatch event back in Json format.  {include screenshot(s)}
 
-**2. TagCreatorId:** It only runs when resource creation events happen. Using rescursivity search and extracts all the creation ids of the event to create the tag of who executed the deployment whether it was an access role (Remember we are using Access Roles to jump to any account in the organization from the master account) or an IAM user.
+**2. TagCreatorId:** It only runs when resource creation events happen. Using rescursivity search and extracts all the creation ids of the event to create the tag of who executed the deployment whether it was an access role (Remember we are using Access Roles to jump to any account in the organization from the master account) or an IAM user. {include screenshot(s)}
 
 # 3. Bind lambda functions through target
 
 In ExtractSns - When the ExtractSNS function does its job correctly it invokes and returns the CloudWatch event to TagCreatorId function. In ExtractSNS configuration we go to "add destination" and in Destination configuration select source > Asynchronous invocation, Condition > On success, Destination type > Lambda function, in Destination select TagCreatorId. Hit Save
 
-# 4. Create SNS Topic "SnsSendToLambdaOhio" and Subscribe it to Lambda Function "ExtractSNS" in us-east-2 in ReceiverAccount
+# 4. Create SNS Topic 
+
+"SnsSendToLambda" and Subscribe it to Lambda Function "ExtractSNS" in ReceiverAccount {this needs a policy snippet}  {policy will need to be scoped to least privledge}
 
 ## Why we need SNS Topic "SnsSendToLambda"?
-CloudWatch enable us to use SNS Topics to pass events to any resource targets in another region.  SnsSendToLambdaOhio will be deploy in us-east-2 (Ohio) and is capable to send a message in a form of a string to resources deployed in us-east-1 such as our Pair of Lambda; which it are the ones who combined do the auto-tagging process.  Once our event info already is in CloudWatch ReceiverAccount (yet in us-east-2) we forward the event to our lambdas in us-east-1 by using SNS topic.
+CloudWatch enable us to use SNS Topics to pass events to any resource targets in another region.  SnsSendToLambda will be deploy in and is capable to send a message in a form of a string to resources deployed in us-east-1 such as our Pair of Lambda; which it are the ones who combined do the auto-tagging process.  Once our event info already is in CloudWatch ReceiverAccount we forward the event to our lambdas in us-east-1 by using SNS topic.
 
-Create a Sns Topic called SnsSendToLambdaOhio in us-east-2 in ReceiverAccount with the necessary permissions.
-Them create a subscription to publish messages to a Lambda function; select SnsSendToLambdaOhio as Topic ARN, use AWS lambda as Protocol, and select ExtractSNS as endpoint , and hit "Create Subscription".
+Create a Sns Topic called SnsSendToLambda in another region in ReceiverAccount with the necessary permissions.
+Them create a subscription to publish messages to a Lambda function; select SnsSendToLambda as Topic ARN, use AWS lambda as Protocol, and select ExtractSNS as endpoint , and hit "Create Subscription".
 
-# 5. Add the necessary permissions in Event Buses in ReceiverAccount in the matching region (for this example us-east-2)
+# 5. Add the necessary permissions 
+in Event Buses in ReceiverAccount in the matching region (for this example us-east-2)
+
 ## We need to add permissions in Event Buses but Why? 
 Cloudwatch events only passes events between matching regions across accounts. So, If a vpc deployment happens in us-east-2 in SenderAcccount, this event is then captured by cloudwatch event buses in us-east-2 and it is passed to a matching event buses to CloudWatch in the ReceipentAccount in us-east-2.
 
@@ -183,6 +283,12 @@ Once the deployment process is done we check the tags of the resources newly dep
 
 
 ### Note: If you want to implement the function in different regions, repeat steps 4 to 6 and replace the region values as applicable
+
+# Terminology
+
+## AWS STS 
+AWS Security Token Service (AWS STS) is a web service that enables you to request temporary, limited-privilege credentials for AWS Identity and Access Management (IAM) users or for users that you authenticate (federated users).
+https://docs.aws.amazon.com/STS/latest/APIReference/welcome.html
 
 
 
