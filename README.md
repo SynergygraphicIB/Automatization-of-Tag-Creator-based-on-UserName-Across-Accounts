@@ -1,4 +1,6 @@
 # Automatization for Tag Creation with the Username ARN and ID:
+![image](https://user-images.githubusercontent.com/77359069/112394095-6b03f200-8cfc-11eb-9400-a1ff0439c017.png)
+
 This is an open-source solution to Deploy AutoTagging using CloudTrail and channel the event invoke through Cloudwatch Events and EventBrigdge across accounts to a Lambda to tag resources at the moment of creation with the arn of who created, the username ID, and the time of creation. Insofar we have the following services sucessfully tested for auto-tag creation; 
 all ec2 services, S3, CloudTrail, CloudWatch, System Manager, Code Pipeline, CodeBuild, Sns, Sqs, IAM, and Cloudformation. Each of those services get a tag with Creator ID, the ARN, and Time of Creation.
 ### PreFlight Check
@@ -17,6 +19,7 @@ all ec2 services, S3, CloudTrail, CloudWatch, System Manager, Code Pipeline, Cod
 We need the AutoTagging Lambda in receiver account permission to assume a role from a linked account to access resources, such as Ec2, S3, SNS. And  
 **AutoTaggingMasterLambda** - Resource Role to give permission to lambda autotagging function in receiver account to assume role in linked account with AWS STS service
 ```json
+![image](https://user-images.githubusercontent.com/77359069/112394068-60495d00-8cfc-11eb-96ea-d457669e666b.png)
 
 {
     "Version": "2012-10-17",
