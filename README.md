@@ -111,7 +111,7 @@ See ```AutoTagginPolicy.json```
       },
       {
         "prefix": "Put"
-+      },
+      },
       "RunInstances",
       "AllocateAddress"
     ]
