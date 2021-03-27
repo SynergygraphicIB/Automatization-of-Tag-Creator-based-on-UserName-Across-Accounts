@@ -3,7 +3,7 @@ This is an open-source solution to deploy **AutoTagging** using `CloudTrail` and
 Insofar we have the following services sucessfully tested for auto-tag creation; `all ec2 services, S3, CloudTrail, CloudWatch, System Manager, Code Pipeline, CodeBuild, Sns, Sqs, IAM, and Cloudformation`. Each of those services get a tag with Creator ID, the ARN, and Time of Creation.
 
 ### PreFlight Check
-1. Intermedial level in Python. So you can adapt and customized the `.py` files to your needs
+1. Intermedial level in Python. So you can adapt and customized the `CreateTagCreatorID.py` files to your needs
 2. Basic to intermedial understanding about how to edit json policies in `EventBridge Rules` to change the rule policies base on your use cases since we have not cover every single resource in AWS.
 3. An existing `AWS Organization`
 2. A `Resource Access Manager (RAM)` enabled for the organization
@@ -397,7 +397,7 @@ f.- In Permissions - click Change default execution role and select "Use an exis
 g.- Click "Create function" button
 {poner una imagen aqui en donde se ilustre el resulatdo de estos pasos}
 h.- Under Code source > In Environment click `lambda_function.py`
-i.- Delete all existing code an replace it with the code provided in the `TagCreatorID.py` file
+i.- Delete all existing code an replace it with the code provided in the `CreateTagCreatorID.py` file
 j.- Once you paste the new code click "Deploy"
 j.- In the Code Source menu click Test
 k.- In Configure test event leave Create new test event selected, In event name type create_tags and click "Create Test" Button
