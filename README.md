@@ -1,10 +1,10 @@
 # Automatization for Tag Creation with the Username ARN and ID:
-This is an open-source solution to deploy **AutoTagging** using `CloudTrail` and channel the event invoke through `Cloudwatch Events` and `EventBrigdge` across accounts to a endpoint that is going to be a lambda function` to `tag resources` at the moment of creation with the arn of who created, the username ID, and the time of creation. 
+This is an open-source solution to deploy **AutoTagging** using `CloudTrail` and channel the event invoke through `Cloudwatch Events` and `EventBrigdge` across accounts to a endpoint that is going to be a `lambda function` to `tag resources` at the moment of creation with the arn of who created, the username ID, and the time of creation. 
 Insofar we have the following services sucessfully tested for auto-tag creation; `all ec2 services, S3, CloudTrail, CloudWatch, System Manager, Code Pipeline, CodeBuild, Sns, Sqs, IAM, and Cloudformation`. Each of those services get a tag with Creator ID, the ARN, and Time of Creation.
 
 ### PreFlight Check
 1. Intermedial level in Python. So you can adapt and customized the `.py` files to your needs
-2. Basic to intermedial Understanding about how to edit json policies in `EventBridge Rules` to change the rule filters base on your use cases since we have not cover every single resource in AWS.
+2. Basic to intermedial understanding about how to edit json policies in `EventBridge Rules` to change the rule policies base on your use cases since we have not cover every single resource in AWS.
 3. An existing `AWS Organization`
 2. A `Resource Access Manager (RAM)` enabled for the organization
 3. One AWS Account to centralize and receive all creation events known as the "the Central or *Receiver Account"*. Here is where we deploy **AutoTagging Lambda function**.
@@ -15,7 +15,7 @@ Insofar we have the following services sucessfully tested for auto-tag creation;
 ## List of Resources Used or Deployed
 ### Two AWS Accounts subscribed to an Organization
 **A Receiver/Central AWS Account**
-One existing AWS account attached to and organization that we are going to use to deploy the auto tagging lambda function in us-east-1 and that for the purpose of this project its Id will be 111111111111
+One existing AWS account attached to and organization that we are going to use to deploy the auto tagging lambda function in us-east-1 as endpoint and that for the purpose of this project its Id will be 111111111111
 
 **A Sender/linked AWS Account**
 A Second existing AWS account that for the purpose of this exercise we will have an Id 222222222222 and that is attached to and organization. We are going to deploy AWS resources in us-east-1, action which will create an event. This event will be sent through a pipeline that will have as endpoint the **lambda autotagging** in us-east-1 in account 111111111111. Thus fulfilling the purpose of centralizing auto-tagging for any linked account that we do the setting we are going to explain in this document.
@@ -28,14 +28,27 @@ Must be sure that Enabling sharing with AWS Organizations. In the Central Accoun
 ***{poner screenshot aqui EnableAWSOrganizations.jpg}***
 
 ### IAM Roles
-We need the **AutoTagging Lambda** in *Receiver Account* a role with permission to assume a role in a linked account to create resources, such as `Ec2, S3, SNS`. In addition we have to follow the least priviledge access principle when attaching or creating policies for such roles.
+We need two roles, one  in *Receiver Account* A role with tailored permissions to assume a role in the linked account, and another in the linked account with least priviledge access to create tags for newly launched resources sucha as such as `VPCs, S3 Buckets, SNS Topics, etc`  . In is important to add that we have to follow the least priviledge access principle when attaching or creating policies for such roles.
 
-**AutoTaggingMasterLambda** - Resource Role to give permission to lambda autotagging function in *receiver account* to assume role in *linked account* with AWS STS service
+**AutoTaggingMasterLambda** - Resource Role to give permission to lambda autotagging function in *receiver account* to assume role in *linked account* with AWS STS service.
 More Details about the policies we need in the Steps section of this document.
+See `AssumeRolePolicy.json`
+or copy paste from here...
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": {
+        "Effect": "Allow",
+        "Action": "sts:AssumeRole",
+        "Resource": "arn:aws:iam::*:role/AutoTaggingExecuteLambda"
+    }
+}
+```
 
-**AutoTaggingExecuteLambda** - Role we create in every *linked account* whose policy only has limited permissions to do the tagging of newly deployed resources. This is the role that  **AutoTaggingMasterLambda** from *Receiver Account* assumes to make possible the recollection of creation events across accounts.
+**AutoTaggingExecuteLambda** - Role we create in every *linked account* with a limited access policy to do the tagging of newly deployed resources. This is the role that  *AutoTaggingMasterLambda* assumes to make possible the recollection of creation events across accounts.
+
 See `AutoTagginPolicy.json`
-
+or copy paste from here...
 ```json
 {
     "Version": "2012-10-17",
@@ -110,7 +123,7 @@ See `AutoTagginPolicy.json`
 }
 ```
 ### EventBridge Rule
-**EventAutoTaggingRule** - This rule filters create events coming from `AWS API Call via CloudTrail` that start with the prefix `"Create"` and `"Put"` and `RunInstances`; which is the one to launch a new EC2 instance, and `"AllocateAddress"` for creating an Elastic IP Adress. We used Prefix Matching feature in order to reduce the need to update the rule written in json format  . There are about 650 create events for the different aws services and about 147 put events. So our rule may need little if nothing updating and upgrading to cover new events launched by AWS.
+**EventAutoTaggingRule** - This rule filters create or launch events coming from `AWS API Call via CloudTrail` that start with the prefix `"Create"` and `"Put"` and `RunInstances`; which is the one to launch a new EC2 instance, and `"AllocateAddress"` for creating an Elastic IP Adress. We used Prefix Matching feature in order to reduce the need to update and rewrite the rule written in json format  . There are about 650 create events for the different aws services and about 147 put events that start with Create or PUt so our rule may need little if nothing updating and upgrading to cover new events launched by AWS.
 
 ```json
 {
