@@ -207,10 +207,6 @@ a.- Be sure you are in *Receiver Account* 111111111111
 b.- At the console screen go to services and type in the text box `"IAM"` or under All
     ```Services > Security, Identity, & Compliance > IAM```
 c.- In `Identity and Access Managment (IAM) menu > go to Policies` and click `"Create policy"` button
-
-
-***{poner imagen}***
-
 d.- Click Create policy next.
 e.- In Create policy window select JSON tab. Click and paste the following policy and click the "Next: tags" button:
 
@@ -229,14 +225,17 @@ h.- Click "Next: Review" button
 i.- In Review policy window in Name type **"AutoTaggingMasterLambdaPolicy"**
 j.- In Description type "Rule to enable **AutoTaggingMasterLambda** Role to assume any role named "AutoTaggingExecuteLambda" in any linked account" and click "Create policy"
 
-**{pegar imagen aqui}**
+**{pegar imagen 1.pmg }**
+
+
+
+
 
 #### Create AutoTaggingMasterLambda role in receiver account
 a.- Be sure you are in `Receiver Account` 111111111111
 b.- At the console screen go to services and type in the text box `"IAM"` or under All services > Security, Identity, & Compliance > IAM
 d.- In Create Role window > Under "Select type of trusted entity" keep AWS service as your choice
 e.- In "Choose a use case" select "Lambda" and click "Next: Permissions" button
-{pegar imagen aqui}
 f.- In next window, under Attach Permissions policies in the search box type "lambdabasic"
 g.- Checkmark the AWS managed policy **"AWSLambdaBasicExecutionRole"**
 h.- Under Create policy clear the Search box 
@@ -245,14 +244,10 @@ j.- Scroll down and checkmark the Customer managed policy **"AssumeLinkedRolePol
 k.-  Click "Next:Tags" button and click "Next: Review" button too
 l.- Under Review, in Role name `*` type **AutoTaggingMasterLambda.** 
 m.- In Role description type "Resource Role to give permission to lambda autotagging function in *receiver account* to assume roles named **"AutoTaggingExecuteLambda"** in linked account with AWS STS service". 
-Observe that in Trusted entities you got AWS service: lambda.amazonaws.com and two policies attached to the role.
-
-**{pegar imagen aqui}**
-
-
+Observe that in Trusted entities you got AWS service: lambda.amazonaws.com and two policies attached to the role
 n.- Click "Create Role Button"
 
-**{pegar screenshot aqui}**
+**{pegar 2.png}**
 
 Is noteworthy to say you should keep the same role name **"AutoTaggingExecuteLambda"** in every new linked accounts in your organization so as not to keep adding new policies into this role
 
@@ -265,10 +260,6 @@ a.- Be sure you are in *Linked Account* 222222222222
 b.- At the console screen go to services and type in the text box `"IAM"` or under All
     ```Services > Security, Identity, & Compliance > IAM```
 c.- In `Identity and Access Managment (IAM) menu > go to Policies` and click `"Create policy"` button
-
-
-***{poner imagen}***
-
 d.- Click Create policy next.
 e.- In Create policy window select JSON tab. Click and paste the following policy and click the "Next: tags" button:
 
@@ -350,14 +341,28 @@ h.- Click "Next: Review" button
 i.- In Review policy window in Name type **"AutoTaggingExecuteLambdaPolicy"**
 j.- In Description type "Policy to enable **AutoTaggingExecuteLambda** Role to tag newly deployed resources in this Account" and click "Create policy"
 
-**{pegar imagen aqui}**
+**{ imagen 3.png}**
 
 #### Create AutoTaggingExecuteLambda role in Linked account
-a.- Be sure you are in `Receiver Account` 222222222222
+a.- Be sure you are in *Receiver Account* 222222222222
 b.- At the console screen go to services and type in the text box `"IAM"` or under All services > Security, Identity, & Compliance > IAM
 d.- In Create Role window > Under "Select type of trusted entity" keep AWS service as your choice
+ ```json
+ {
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::111111111111:role/AutoTaggingMasterLambda"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
 e.- In "Choose a use case" select "Lambda" and click "Next: Permissions" button
-{pegar imagen aqui}
+**{pegar imagen aqui 4.png**
 f.- In next window, under Attach Permissions policies in the search box type "lambdabasic"
 g.- Checkmark the AWS managed policy **"AWSLambdaBasicExecutionRole"**
 h.- Under Create policy clear the Search box 
@@ -367,13 +372,9 @@ k.-  Click "Next:Tags" button and click "Next: Review" button too
 l.- Under Review, in Role name `*` type **AutoTaggingExecuteLambda.** 
 m.- In Role description type "Resource Role to give permission to lambda autotagging function in *receiver account* to tag resources deployed in this account - Linked Account". 
 Observe that in Trusted entities you got AWS service: lambda.amazonaws.com and two policies attached to the role.
-
-**{pegar imagen aqui}**
-
-
 n.- Click "Create Role Button"
 
-**{pegar screenshot aqui}**
+**{pegar screenshot 5.png}**
 
 Is noteworthy to say you should keep the same role name **"AutoTaggingExecuteLambda"** in every new linked accounts in your organization so as not to keep adding new policies into the Receiver Account
 
@@ -393,14 +394,13 @@ d. You will the following options to create your function Author from scratch, U
 e. In Function name type **"AutoTagging"** or any name you choose to, in Runtime look for Python 3.8
 f.- In Permissions - click Change default execution role and select "Use an existing role". In the dialog box that opens up look for "AutoTaggingMasterLambda", this is the role we created in the previous step.
 g.- Click "Create function" button
-{poner una imagen aqui en donde se ilustre el resulatdo de estos pasos}
 h.- Under Code source > In Environment click `lambda_function.py`
 i.- Delete all existing code an replace it with the code provided in the `CreateTagCreatorID.py` file
 j.- Once you paste the new code click "Deploy"
 j.- In the Code Source menu click Test
 k.- In Configure test event leave Create new test event selected, In event name type create_tags and click "Create Test" Button
 
-{pegar foto aqui}
+**{pegar foto aqui 6.png }**
 
 # 5. Create SNS Topic 
 Create a topic - **"SNStoAutoTaggingLambda"** and Subscribe it to Lambda Function **"AutoTagging"** *in ReceiverAccount*. So let us follow the next steps:
@@ -415,12 +415,15 @@ e.- In the menu to the left click Topics and then The `"Create Topic"` orange bu
 f.- In Create topic window choose Stardard, In Name type **"SNStoAutoTaggingLambda"**
 g.- In the Access policy section we keep the Basic method 
 h.- Click Create topic buttom. The topic is created.
-{poner una imagen aqui en donde se ilustre el resulatdo de estos pasos}
+
+**{poner una imagen 7.png }**
+
 i.- Now, we create the subscription. Click the Create subscription button.
 j. In Details > Topic ARN look for the topic created in the previous steps
 k.-In Protocol choose AWS Lambbda and look for the ARN of the lambda function **AutoTagging.**
 l.- Hit the Create Subscription Button. Voila! the subscription is done.
-{poner una imagen aqui en donde se ilustre el resulatdo de estos pasos}
+
+**{poner una imagen 8.png}**
 
 # 6. In `CloudWatch` in *Receiver Account* add the necessary permissions to `Event Buses` 
 In Event Buses we have to manage event bus permissions to enabble passing event metadata:
@@ -432,15 +435,16 @@ services > Management & Governance > Cloudwatch
 c.- In `Event Buses` item in the menu go to `Event Buses`
 d.- Under the permissions section click add permission. A "Add Permission" dialog box opens up. In the Type text box click the arrow and select Organization. In Organization ID select My Organization, your organization Id "my-org-id-1234" should be pre-populated. Hit the Add blue button.
 
-***{poner una imagen aqui en donde se ilustre el resulatdo de estos pasos}***
+***{imagen 9.png}***
 
 A Resource-based policy for default event bus is automatically generated.
 To check the policy go to ```Amazon EventBridge > Event buses > default``` and you check Permissions tab you will see a Resource-based policy like this
 The default event bus name is something like this - `arn:aws:events:us-east-1:111111111111:event-bus/default`
 
-***{poner una imagen aqui en donde se ilustre el resulatdo de estos pasos}***
+***{imagen 10.png}***
 
 And the resulting Reso policy would look something like this:
+
 ```json
 {
   "Version": "2012-10-17",
@@ -459,15 +463,12 @@ And the resulting Reso policy would look something like this:
 }
 ```
 
-**{poner una imagen aqui en donde se ilustre el resulatdo de estos pasos}***
 
 # 7 In Receiver Account create an EventBridge Rule in us-east-1 -or Virginia Region and use as target SnsSendToLambda.
 Create a rule that captures all creation events in `Sender Acccount` using `AWS API Call via CloudTrail` and select **SnsSendToLambda** as target:
 a.- Be sure you are in `us-east-1` region in `Receiver Account` 
 b.- At the console screen go to services and type in the text box `"EventBridge"` or under
 ```All services > Application Integration > Amazon EventBridge```
-
-***{copiar imagen aqui}***
 c.- In the Amazon EventBridge menu select Rules and click "Create Rule" button
 d.- Under Name and Description > Name type **"EventAutoTaggingRule**"
 e.- Add a Description **"Rule to send creation events to SnsSendToLambda"** if you choose to, it is optional
@@ -494,21 +495,19 @@ g.- Copy paste the following json pattern
 ```
 Notice that this is exactly the same rule we used in CloudWatch in Receiver Account
 
-***{poner foto aqui donde se vea este verguero}***
+***{ imagen 11.png}***
 
 h.- In Select event bus leave it as it is, `"AWS default event bus"` and `"Enable the rule on the selected bus"`
 i.- In Select` Targets > in Target click the text box, scroll up and select "SNS Topic"`
 j.- In Topic text box select **"SnsSendToLambda"**
 k.- Click `"Create Rule" `button. 
 
-**{poner imagen aqui}**
+**{imagen 12.png}**
 
 # 8  In *Linked Account* create a matching `EventBridge Rule` in same region (we are using us-east-1 - Virginia Region) and use as target the` event Bus `in matching us-east-1 region in *Receiver Account*.
 Create a rule that captures all creation events in `Sender Acccount` using `AWS API Call via CloudTrail` and select default event bus as target:
 a.- Be sure you are in us-east-1 region in `Sender Account` 
 b.- At the console screen go to services and type in the text box `"EventBridge"` or under ``All services > Application Integration > Amazon EventBridge```
-
-**{copiar imagen aqui}**
 
 c.- In the ```Amazon EventBridge menu select Rules and click "Create Rule" button``
 d.- Under Name and ```Description > Name type "EventAutoTaggingRule"``
@@ -536,17 +535,16 @@ g.- Copy paste the following json pattern
 ```
 Notice that this is exactly the same rule we used in CloudWatch in Receiver Account
 
-***{poner imagen aqui}***
 h.- In Select event bus leave it as it is, ```"AWS default event bus" ```and "Enable the rule on the selected bus"
 
-***{poner foto aqui donde se vea este verguero}**
 i.- In ``Select Targets > in Target click the text box, scroll up and select "Event bus in another AWS account"``
 j.- In Event Bus text box type `"arn:aws:events:us-east-1:111111111111:event-bus/default"` (be sure to replace the Account number with your designated Receiver Account)
 k.- Select "Create a new role for this specific resource". EventBridge will create a role for you with the right permissions to pass events into the event bus. Click configure details button.
 
-**{poner imagen aqui que muestre esta vaina}**
 l.- Click "Create Rule" button. 
-**{poner imagen aqui}**
+
+***{poner foto 13.pmg}**
+
 
 # 9. Add the necessary permissions to Event Buses in CloudWatch in Linked Account
 In `Event Buses` we have to manage event bus permissions to enabble passing event metadata:
@@ -557,10 +555,11 @@ d.- Under the permissions section click add permission. A `"Add Permission"` dia
 
 ***`{poner imagen aqui}
 ***`
+
 A Resource-based policy for default event bus is automatically generated.
 To check the policy go to ```Amazon EventBridge > Event buses > default ```and you check Permissions tab you will see a Resource-based policy like this
 The default event bus name is something like this - `arn:aws:events:us-east-1:222222222222:event-bus/default`
-**{poner una imagen aqui en donde se ilustre el resulatdo de estos pasos}**
+
 And the resulting Reso policy would look something like this:
 ```json
 {
@@ -579,7 +578,7 @@ And the resulting Reso policy would look something like this:
   }]
 }
 ```
-{poner imagen aqui}
+***{poner foto 14.pmg}**
 
 # 10. Deploy a VPC in *Linked Account* and Check the Tags
 Either by console or by AWS CLi SDK for boto3 deploy a Vpc or any resource that you desire.
@@ -588,13 +587,14 @@ a. In *Sender Account,* in us-east-1 go to the resource tab
 b. In the services search text box type vpc or under "Networking & Content Delivery" look for VPC. Click VPC
 c.- In the menu to the left click "Your VPCs"
 d.- In Your VPCs window click "Create VPC" button
-{pegar imagen aqui mostrando esto}
 e.- In Create VPC > VPC settings > Name tag type test-project or any name you want to.
 f.- In IPv4 CIDR block type 10.0.0.0/24, leave the rest of the settings as it is.
 g.- Click the "Create VPC" button.
 {pegar imagen aqui}
 h.- You will be redirected to the newly created vpc window details. under the "Tags" tab click it and check for the tags. 
-**{pegar imagen aqui}**
+***{poner foto 15.pmg}**
+
+
 You will see the Following tags; create_at, UserName, Name, and creatorId. 
 
 
