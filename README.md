@@ -25,8 +25,6 @@ An Existing AWS organization that for the purpose of this project has an ID my-o
 **Resource Access Management (RAM)**
 Must be sure that Enabling sharing with AWS Organizations. In the Central Account go to ```Services Tab > type RAM in the search for services text box > select Resource Access Manager > In the RAM menu go to Settings - "Enable sharing with AWS Organizations"``` must be checked out.
 
-***{poner screenshot aqui EnableAWSOrganizations.jpg}***
-
 ### IAM Roles
 We need two roles, one  in *Receiver Account* A role with tailored permissions to assume a role in the linked account, and another in the linked account with least priviledge access to create tags for newly launched resources sucha as such as `VPCs, S3 Buckets, SNS Topics, etc`  . In is important to add that we have to follow the least priviledge access principle when attaching or creating policies for such roles.
 
