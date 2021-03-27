@@ -17,7 +17,7 @@ Insofar we have the following services sucessfully tested for auto-tag creation;
 **A Receiver/Central AWS Account**
 One existing AWS account attached to and organization that we are going to use to deploy the auto tagging lambda function in us-east-1 and that for the purpose of this project its Id will be 111111111111
 
-** A Sender/linked AWS Account**
+**A Sender/linked AWS Account**
 A Second existing AWS account that for the purpose of this exercise we will have an Id 222222222222 and that is attached to and organization. We are going to deploy AWS resources in us-east-1, action which will create an event. This event will be sent through a pipeline that will have as endpoint the **lambda autotagging** in us-east-1 in account 111111111111. Thus fulfilling the purpose of centralizing auto-tagging for any linked account that we do the setting we are going to explain in this document.
 
 **AWS Organizations**
