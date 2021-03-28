@@ -10,7 +10,7 @@ Insofar we have the following services sucessfully tested for auto-tag creation;
 3. One AWS Account to centralize and receive all creation events known as the "the Central or *Receiver Account"*. Here is where we deploy **AutoTagging Lambda function**.
 4. In Every other linked/ sender  account included in your organization will need the following
     A. `Cloudwatch` log group collecting `cloudtrail` for every region.
-    B. Cloudwatch and Eventbridge rules for every region for Receiver account and in the linked accounts in order to create a pipeline to pass the create events from the source region in any linked account to the lambda function in us-east-1 in central or receiving account.
+    B. `Eventbridge` rules for every region for Receiver account and in the linked accounts in order to create a pipeline to pass the create events from the source region in any linked account to the lambda function in us-east-1 in central or receiving account.
 
 ## List of Resources Used or Deployed
 ### Two AWS Accounts subscribed to an Organization
