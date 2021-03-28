@@ -198,10 +198,10 @@ When using prefix feature to create rules we did use EventBridge. When applying 
 ## 1. Log in into you account designated as Receiver Account 
 This is the account we are going to use to centralized the **Autotagging** for any linked Account. 
 
-Be sure you are in US East (N. Virginia) us-east-1 for most of the purposes of this project, though some AWS Services are global, among those Identity and `Access Management (IAM)` and `S3`.
+Be sure you are in US East (N. Virginia) us-east-1 for most of the purposes of this project, though some AWS Services are global, among those `Identity and Access Management (IAM)` and `S3`.
 
 ## 2 Setting up a Role in ReceiverAccount with the appropiate permsissions to execute Lambda functions and to Assume a Role in linked Account
-Create a role in *Receiver Accoun*t that has enough permissions to execute lambda the auto-tagging lambdafunction and to assume tag creation role in *Linked Account*. 
+Create a role in *Receiver Accoun*t that has enough permissions to execute lambda the auto-tagging lambda function and to assume the tag creation role in *Linked Account*. 
 Follow the steps:
 **Create a Policy **"AssumeLinkedRolePolicy"** to allow AutoTaggingMasterLambda role in receiver account  to assume any role named AWSLambdaBasicExecutionRole in any **Linked account *
 a.- Be sure you are in *Receiver Account* 111111111111
