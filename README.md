@@ -201,8 +201,7 @@ Be sure you are in US East (N. Virginia) us-east-1 for most of the purposes of t
 # 2 Setting up a Role in ReceiverAccount with the appropiate permsissions to execute Lambda functions and to Assume a Role in linked Account
 Create a role in *Receiver Accoun*t that has enough permissions to execute lambda the auto-tagging lambdafunction and to assume tag creation role in *Linked Account*. 
 Follow the steps:
-**Create a Policy **"AssumeLinkedRolePolicy"** to allow AutoTaggingMasterLambda role in receiver account  to assume any role named AWSLambdaBasicExecutionRole in any **Linked account **
-
+**Create a Policy **"AssumeLinkedRolePolicy"** to allow AutoTaggingMasterLambda role in receiver account  to assume any role named AWSLambdaBasicExecutionRole in any **Linked account *
 a.- Be sure you are in *Receiver Account* 111111111111
 b.- At the console screen go to services and type in the text box `"IAM"` or under All
     ```Services > Security, Identity, & Compliance > IAM```
@@ -225,7 +224,7 @@ h.- Click "Next: Review" button
 i.- In Review policy window in Name type **"AutoTaggingMasterLambdaPolicy"**
 j.- In Description type "Rule to enable **AutoTaggingMasterLambda** Role to assume any role named "AutoTaggingExecuteLambda" in any linked account" and click "Create policy"
 
-**{pegar imagen 1.pmg }**
+![alt text]https://github.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/blob/main/img/1.png?raw=true)
 
 
 
