@@ -4,7 +4,7 @@ Insofar we have the following services sucessfully tested for auto-tag creation;
 
 ### PreFlight Check
 1. Intermedial to Advance level in Python. So you can adapt and customized the `CreateTagCreatorID.py` files to your needs
-2. Basic to intermedial understanding about how to edit json policies in `EventBridge Rules` to change the rule policies base on your use cases since we have not cover every single resource in AWS.
+2. Basic to intermedial level in json to edit json policies in `EventBridge Rules` to change the rules and policies to the needs of your use cases since we have not cover every single resource in AWS.
 3. An existing `AWS Organization`
 2. A `Resource Access Manager (RAM)` enabled for the organization
 3. One AWS Account to centralize and receive all creation events known as the "the Central or *Receiver Account"*. Here is where we deploy **AutoTagging Lambda function**.
