@@ -361,7 +361,7 @@ d.- In Create Role window > Under "Select type of trusted entity" keep AWS servi
 }
 ```
 e.- In "Choose a use case" select "Lambda" and click "Next: Permissions" button
-![alt text]https://raw.githubusercontent.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/main/img/4.png)
+![alt text](https://raw.githubusercontent.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/main/img/4.png)
 f.- In next window, under Attach Permissions policies in the search box type "lambdabasic"
 g.- Checkmark the AWS managed policy **"AWSLambdaBasicExecutionRole"**
 h.- Under Create policy clear the Search box 
