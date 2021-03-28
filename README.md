@@ -146,30 +146,30 @@ or copy paste from here...
 We will create a rule for every region in the *linked account* that we want to include in the **Auto Tagging** and a matching rule in every matching region in the receiver account
 
 ### Sns Topics
-**SnsSendToLambda** - The `SNS Topic` that have to be created in every region of the *Receiver Account* where we want to do the auto-tagging.  This `SNS Topic` helps to centralize collection of creation events from all regions and sends the event metadata to us-east-1 to the **Autotagging lambda**, the one function that does the auto tagging throughout the organzation. We set this sns topic it as target for rule **"EventAutoTagging"** rule in `EventBridge` in order to pass the event to lambda (then again from any region). Sns is one of the few AWS services that can deliver event data across regions, so in order to make our pipeline as scalable as possible we use `SNS Topics` as intermedial step in te pipeline.
-In our project a `EventBridge Rule` could be deployed in us-east-2 or us-west-1 and stil relay the event using `SNS Topic` as target to pass events to the lambda function in us-east-1 region.
+**SnsSendToLambda** - The `SNS Topic` that have to be created in every region of the *Receiver Account* where we want to do the auto-tagging.  This `SNS Topic` helps to centralize the collection process of creation events from all regions and sends the event metadata to us-east-1 to the **Autotagging lambda**, the one function that does the auto tagging throughout the organization. We set this `SNS topic` as a target for **"EventAutoTagging"** rule in `EventBridge` in order to futher route the event to lambda (then again from any region). AWS SNS Topics is one of the few AWS services that can deliver event data across regions. In this demo we are using us-east-1, but by repeating some steps we can add us-east-2, us-west-1 and any region into the auto-tagging pipeline. So in order to make our pipeline as scalable as possible we use `SNS Topics` as intermedial step.
+In our project a `EventBridge` Rule could be deployed in us-east-2 or us-west-1 and stil relay the event by using `SNS Topic` as intermedial target to pass events to the lambda function in us-east-1 region.
 
 ### Event Buses Permissions in CloudWatch
 **Add Permissions in Event Buses** - 
-`CloudWatch` has a default Event Bus. It is stateless, it means that we have to set the permissions for it to start to receive events from the organization. Therefore, we add the Permissions to get all events from any linked account in the organization. Then Default event bus will accept events from AWS services, `PutEvents API calls` coming from these authorized accounts. 
+`CloudWatch` has a default Event Bus. We have to set the proper permissions for it to start to receive events from the organization. Therefore, we add the Permissions to get all events from any linked account in the organization. Then Default event bus will accept events from AWS services, `PutEvents API calls` coming from any associated account to the Organization. 
 
 In Addition, We must also manage permissions on the default event bus of the *linked account* to authorize it to share their events with the *Receiver Account* and to add it as as a target to the rules in in `EventBridge`. 
 
 ## We need to add permissions for this particular architecture in Event Buses but Why? 
 `Cloudwatch` events only passes events between matching regions across accounts, in this case between *linked account/ us-east-1* and *Receiver Account / us-east-1*. Then, when a Vpc deployment happens in us-east-1 in the *linked account*, this event is then captured by `cloudwatch event buses` and it is passed "through the bus" to a the event bus in `CloudWatch` in *Receiver Account* in us-east-1 as well.
 
-We have to do this permission setting from every region we want to incorporate in the autotagging process and that is why we use the organization, to reduce the modifications needed in the *receiver account*. Once we set the permissions in a certain region in *receiver account* it is ready to pass events from any *linked account* in the organization, instead adding each new account at once.
+We have to do this permission setting from every region we want to incorporate in the autotagging process and that is why we use the organization, to reduce the modifications needed in the *receiver account*. Once we set the permissions in a certain region in *receiver account* it is ready to pass events from any *linked account* in the organization, instead adding each new account at once. A more detail explanation in the pipeline configurations steps.
 
 ### Lambda function
 
-**AutoTagging** - Lambda function that we deploy in the *Receiver Account* in the us-east-1 region. First, It converts the event coming from `SNS Topic`  **"AutoTaggingSNS"** in a form of a string back into `json` format. Then following a series of validations adapted to every creation case, it creates Tags with the creator ID, the ARN, and the time stamp to track who did what and when. This is a highly valuable feature to help keep tracking resources and reduce the time consuming resource management. In summary, the lambda  is deployed in *Receiver account* in us-east-1 region and again it is triggered by `SNS Topic` **"AutoTaggingSNS**". whenever a creation event happens for the validated AWS Services in the function.
+**AutoTagging** - Lambda function that we deploy in the *Receiver Account* in the us-east-1 region. First, It has a function that converts the event coming from `SNS Topic`  **"AutoTaggingSNS"** in a form of a string back into `json` format. Then it sorts every creation case and creates a set of tags; the creator ID, the ARN, and the timestamp to track who did what and when. This is a highly valuable feature to help keep tracking resources and reduce the time consuming resource management, and cut cost. 
+In summary, the lambda  is deployed in *Receiver account* in us-east-1 region and again it is triggered by `SNS Topic` **"AutoTaggingSNS**". whenever a creation event happens for the tested AWS Services in the function.
 
 ## How does it work this pipeline? 
-The lambda **"AutoTagging"** function in *Receiver Account* is fired when any AWS resource is deployed by *Sender* or *linked account* either by using the console or the AWS SDK for Python (Boto3). The newly deployed resource gets three tags: User Name, Creator ID, and Create at. which are the basis for any good resource cost control and managment.
+The lambda **"AutoTagging"** function in *Receiver Account* is fired when any AWS resource is deployed by *Sender* or *linked account* either by using the console or the AWS SDK for Python (Boto3). The newly deployed resource gets three tags: User Name, Creator ID, and Create at. which are a good basis for resource tracking, cost control, and managment in general.
+A Vpc is launched in us-east-1 in *Linked Account*, yet the **Auto-tagging** lambda function is in *Receiver Account* in us-east-1. No matter what creation or deployment event happens, all tagging is going to be done by the **AutoTagging** lambda function . Hence, at the moment of deployment a event metadata is generated. Date of creation, and who was the creator, ARN of the creator, etc. Thus the meta data is passed from the original point - *linked account* 222222222222 to lambda function in *receiver account* to do the tagging.
 
-A Vpc is launched in us-east-1 in *Linked Account*, yet the **Auto-tagging** lambda function is in *Receiver Account* in us-east-1. No matter what creation or deployment event happens, all tagging is going to be done by the **AutoTagging** lambda function . Hence, at the moment of deployment a metadata is generated. Date of creation, and who was the creator, ARN of the creator, etc. Thus the meta data is passed from the original point - *linked account* 222222222222 to lambda function in *receiver account* to do the tagging.
-
-`AWS CloudTrail` in *sender account* 222222222222 records API activity and logs the creation event - `"CreateVpc`". 
+`AWS CloudTrail` in *linked account* 222222222222 in us-east-1  records API activity and logs the creation event - `"CreateVpc`". 
 The Amazon EC2 CreateVpc API CloudTrail event provides a lot of tagging information. For example:
 ```
 User ID of the entity that created the resource from the principalId key
@@ -178,20 +178,22 @@ The date/time of resource creation from the eventTime key.
 The Vpc ID and other metadata contained in the event. 
 ```
 
-Then, `CloudWatch` filters the creation event base on **EventAutoTaggingRule.** This rule looks for any event that has `"Create"` as a prefix"  and sends the metadata event to the default event bus that is connected to the event bus in *Receiver Account* - in us-east-1 as well. 
+Then, `CloudWatch` in us-east-1 filters the creation event base on **EventAutoTaggingRule.** This rule looks for any event that has `"Create"` as a prefix"  and sends the metadata event to the default event bus in *Linked Account* that routes it to the event bus in *Receiver Account* in us-east-1 as well. 
 
-Now the metadata of the event is in  the default bus in *Receiver Account*. After `CloudWatch` filters and matches the event by a matching rule and sends it to **SNSToAutoTaggingMasterLambda**.
+Now the event metadata of is in EventBridge in *Receiver Account* in us-east-1. It filters and prefix-matches the event with the same **EventAutoTaggingRule.** rule and forwards the event to **SNSToAutoTaggingMasterLambda**.
 
-**SNSToAutoTaggingMasterLambda** passes the event to The **AutoTagging lambda function** in a form of string. 
+**SNSToAutoTaggingMasterLambda** targets **AutoTagging lambda function** and passes the event in a form of string. 
 
-**Autotagging lambda function** is fired. firstly converts the string into a `json` readable format. Then by validating the metada data, it determines what kind of create event happened and does the tagging accordingly 
+**Autotagging lambda function** is fired. It first converts the string into a `json` readable format. Then by sorting the metada data, it determines from what AWS Service the create event is coming from does the tagging base of series of conditional statements and does a response. Thus the new deployed resource gets a set of tags added. What USerName created the resource, the ARN of the creator, and the timestamp of the creation time.
 
 In Summary, The purpose of this pipeline is to centralize the control and tagging of resources being deployed in any *linked account* of the organization. It reduces the human error factor at the moment of tagging.
 
-Following this configuration we can repeat the same process for the other regions in any other linked accounts within the organization that we want to include in the **autotagging.**
+Following this configuration we can repeat the same process for the other regions like us-east-2, us-west-1, etc  in any other linked accounts within the organization that we want to include in the **autotagging.** process.
 
-By using *SNS Topics* as intermedial step in the pipeline allow us to modify this function to automate tagging from a single to multiple accounts with very little modifications. We have a separate Git where we explain how you can do the autotagging in a single account.
+It is important to mention that by using *SNS Topics* as intermedial step in the pipeline allow us to modify this function to automate tagging from a single to multiple accounts with very little modifications. We have a separate Git where we explain how you can do the autotagging in a single account.
 When using prefix feature to create rules we did use EventBridge. When applying or even updating the same rules in CloudWatch directly, it did not work. Hence, we configure the rules in EventBridge and the end result is also shown in CloudWatch. 
+
+## Steps to Create the Pipeline to do the Auto-Tagging
 
 # 1. Log in into you account designated as Receiver Account 
 This is the account we are going to use to centralized the **Autotagging** for any linked Account. 
