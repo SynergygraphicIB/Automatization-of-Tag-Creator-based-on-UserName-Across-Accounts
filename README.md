@@ -195,13 +195,13 @@ When using prefix feature to create rules we did use EventBridge. When applying 
 
 ## Steps to Create the Pipeline to do the Auto-Tagging
 
-## 1. Log in into you account designated as Receiver Account 
+### 1. Log in into you account designated as Receiver Account 
 Login into Account ID 111111111111. This is the account we are going to use to centralized the **Autotagging** for any linked Account. 
 
 In this case `Identity and Access Management (IAM)` is a global service so do not worry in what region you are in. However, be sure you are in us-east-1 (N. Virginia) for most of the purposes of this project. Though some AWS Services are global, among those `Identity and Access Management (IAM)` and `S3` others like `EventBridge`, `CloudWatch`, `SNS Topics`, and `Lambda` is regional .
 
-## 2 Setting up a Role "AutoTaggingMasterLambda" in ReceiverAccount with the appropiate policies attached to ensure that it can execute basic Lambda functions and is able to assume a role in linked account called "AutoTaggingExecuteLambda"
-Create a role in *Receiver Accoun*t that has enough permissions to execute lambda the auto-tagging lambda function and to assume the tag creation role in *Linked Account*. 
+### 2 Setting up a Role "AutoTaggingMasterLambda" in ReceiverAccount with the appropiate policies attached to ensure that it can execute basic Lambda functions and is able to assume a role in linked account called "AutoTaggingExecuteLambda"
+Create a role in *Receiver Accoun*t that has enough permissions to execute the lambda auto-tagging function and to assume the tag creation role in *Linked Account*. 
 Follow the steps:
 **Create a Policy **"AssumeLinkedRolePolicy"** to allow AutoTaggingMasterLambda role in receiver account  to assume any role named AWSLambdaBasicExecutionRole in any **Linked account *
 a.- Be sure you are in *Receiver Account* 111111111111
@@ -252,7 +252,7 @@ n.- Click "Create Role Button"
 
 Is noteworthy to say you should keep the same role name **"AutoTaggingExecuteLambda"** in every new linked accounts in your organization so as not to keep adding new policies into this role
 
-## 3 Setting up a Role in Linked Account with the appropiate permsissions to execute Lambda functions to Tag Newly deployed resources
+### 3 Setting up a Role in Linked Account with the appropiate permsissions to execute Lambda functions to Tag Newly deployed resources
 Create a role in *Linked Accoun*t that has enough permissions to execute lambda for the auto-tagging job. 
 Follow the steps:
 **Create a Policy **"AutoTaggingMasterLambdaPolicy"** to allow AutoTaggingMasterLambda role in receiver account  to assume any role named AWSLambdaBasicExecutionRole in any **Linked account **
