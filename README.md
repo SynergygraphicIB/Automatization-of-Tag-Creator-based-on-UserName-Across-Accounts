@@ -224,7 +224,7 @@ h.- Click "Next: Review" button
 i.- In Review policy window in Name type **"AutoTaggingMasterLambdaPolicy"**
 j.- In Description type "Rule to enable **AutoTaggingMasterLambda** Role to assume any role named "AutoTaggingExecuteLambda" in any linked account" and click "Create policy"
 
-![alt text]https://github.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/blob/main/img/1.png?raw=true)
+![alt text](https://github.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/blob/main/img/1.png?raw=true)
 
 
 
