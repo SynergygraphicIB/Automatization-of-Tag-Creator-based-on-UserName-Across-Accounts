@@ -195,12 +195,12 @@ When using prefix feature to create rules we did use EventBridge. When applying 
 
 ## Steps to Create the Pipeline to do the Auto-Tagging
 
-# 1. Log in into you account designated as Receiver Account 
+## 1. Log in into you account designated as Receiver Account 
 This is the account we are going to use to centralized the **Autotagging** for any linked Account. 
 
 Be sure you are in US East (N. Virginia) us-east-1 for most of the purposes of this project, though some AWS Services are global, among those Identity and `Access Management (IAM)` and `S3`.
 
-# 2 Setting up a Role in ReceiverAccount with the appropiate permsissions to execute Lambda functions and to Assume a Role in linked Account
+## 2 Setting up a Role in ReceiverAccount with the appropiate permsissions to execute Lambda functions and to Assume a Role in linked Account
 Create a role in *Receiver Accoun*t that has enough permissions to execute lambda the auto-tagging lambdafunction and to assume tag creation role in *Linked Account*. 
 Follow the steps:
 **Create a Policy **"AssumeLinkedRolePolicy"** to allow AutoTaggingMasterLambda role in receiver account  to assume any role named AWSLambdaBasicExecutionRole in any **Linked account *
@@ -252,7 +252,7 @@ n.- Click "Create Role Button"
 
 Is noteworthy to say you should keep the same role name **"AutoTaggingExecuteLambda"** in every new linked accounts in your organization so as not to keep adding new policies into this role
 
-# 3 Setting up a Role in Linked Account with the appropiate permsissions to execute Lambda functions to Tag Newly deployed resources
+## 3 Setting up a Role in Linked Account with the appropiate permsissions to execute Lambda functions to Tag Newly deployed resources
 Create a role in *Linked Accoun*t that has enough permissions to execute lambda for the auto-tagging job. 
 Follow the steps:
 **Create a Policy **"AutoTaggingMasterLambdaPolicy"** to allow AutoTaggingMasterLambda role in receiver account  to assume any role named AWSLambdaBasicExecutionRole in any **Linked account **
@@ -379,7 +379,7 @@ n.- Click "Create Role Button"
 
 Is noteworthy to say you should keep the same role name **"AutoTaggingExecuteLambda"** in every new linked accounts in your organization so as not to keep adding new policies into the Receiver Account
 
-# 4. Deploy Autotagging Lambda Function in Receiver Account
+## 4. Deploy Autotagging Lambda Function in Receiver Account
 
 We set our lambda function in virginia region or us-east-1. This is the endpoint for any deployment or creation event happening in any region in any account that is configured in the pipeline for **Auto-tagging* and in this lambda function. 
 
@@ -403,7 +403,7 @@ k.- In Configure test event leave Create new test event selected, In event name 
 
 ![alt text](https://raw.githubusercontent.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/main/img/6.png)
 
-# 5. Create SNS Topic 
+## 5. Create SNS Topic 
 Create a topic - **"SNStoAutoTaggingLambda"** and Subscribe it to Lambda Function **"AutoTagging"** *in ReceiverAccount*. So let us follow the next steps:
 
 a.- Be sure you are in us-east-1 region (SNS works across regions, but still is a regional resource)
@@ -423,7 +423,7 @@ l.- Hit the Create Subscription Button. Voila! the subscription is done.
 
 ![alt text](https://raw.githubusercontent.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/main/img/7.png)
 
-# 6. In `CloudWatch` in *Receiver Account* add the necessary permissions to `Event Buses` 
+## 6. In `CloudWatch` in *Receiver Account* add the necessary permissions to `Event Buses` 
 In Event Buses we have to manage event bus permissions to enabble passing event metadata:
 a.- Be sure you are in us-east-1 region in *Receiver Account*
 b.- At the console screen go to services and type in the text box `"Cloudwatch"` or under All
@@ -462,7 +462,7 @@ And the resulting Reso policy would look something like this:
 ```
 
 
-# 7 In Receiver Account create an EventBridge Rule in us-east-1 -or Virginia Region and use as target SnsSendToLambda.
+## 7 In Receiver Account create an EventBridge Rule in us-east-1 -or Virginia Region and use as target SnsSendToLambda.
 Create a rule that captures all creation events in `Sender Acccount` using `AWS API Call via CloudTrail` and select **SnsSendToLambda** as target:
 a.- Be sure you are in `us-east-1` region in `Receiver Account` 
 b.- At the console screen go to services and type in the text box `"EventBridge"` or under
@@ -500,7 +500,7 @@ k.- Click `"Create Rule" `button.
 
 ![alt text](https://raw.githubusercontent.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/main/img/9.png)
 
-# 8  In *Linked Account* create a matching `EventBridge Rule` in same region (we are using us-east-1 - Virginia Region) and use as target the` event Bus `in matching us-east-1 region in *Receiver Account*.
+## 8  In *Linked Account* create a matching `EventBridge Rule` in same region (we are using us-east-1 - Virginia Region) and use as target the` event Bus `in matching us-east-1 region in *Receiver Account*.
 Create a rule that captures all creation events in `Sender Acccount` using `AWS API Call via CloudTrail` and select default event bus as target:
 a.- Be sure you are in us-east-1 region in `Sender Account` 
 b.- At the console screen go to services and type in the text box `"EventBridge"` or under ``All services > Application Integration > Amazon EventBridge```
@@ -541,7 +541,7 @@ l.- Click "Create Rule" button.
 
 ![alt text](https://raw.githubusercontent.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/main/img/10.png)
 
-# 9. Add the necessary permissions to Event Buses in CloudWatch in Linked Account
+## 9. Add the necessary permissions to Event Buses in CloudWatch in Linked Account
 In `Event Buses` we have to manage event bus permissions to enabble passing event metadata:
 a.- Be sure you are in us-east-1 region in *Sender Account*
 b.- At the console screen go to services and type in the text box `"Cloudwatch"` or under ```All services > Management & Governance > Cloudwatch```
@@ -572,7 +572,7 @@ And the resulting Reso policy would look something like this:
 }
 ```
 
-# 10. Deploy a VPC in *Linked Account* and Check the Tags
+## 10. Deploy a VPC in *Linked Account* and Check the Tags
 Either by console or by AWS CLi SDK for boto3 deploy a Vpc or any resource that you desire.
 Using the AWS Console:
 a. In *Sender Account,* in us-east-1 go to the resource tab
