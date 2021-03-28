@@ -203,7 +203,9 @@ In this case `Identity and Access Management (IAM)` is a global service so do no
 ### 2 Setting up a Role "AutoTaggingMasterLambda" in ReceiverAccount with the appropiate policies attached to ensure that it can execute basic Lambda functions and is able to assume a role in linked account called "AutoTaggingExecuteLambda"
 Create a role in *Receiver Accoun*t that has enough permissions to execute the lambda auto-tagging function and to assume the tag creation role in *Linked Account*. 
 Follow the steps:
-**Create a Policy **"AssumeLinkedRolePolicy"** to allow AutoTaggingMasterLambda role in receiver account  to assume any role named AWSLambdaBasicExecutionRole in any **Linked account *
+Create a Policy **"AssumeLinkedRolePolicy"** to allow AutoTaggingMasterLambda role in receiver account  to assume any role named AWSLambdaBasicExecutionRole in any *Linked account *
+
+
 a.- Be sure you are in *Receiver Account* 111111111111
 b.- At the console screen go to services and type in the text box `"IAM"` or under All
     ```Services > Security, Identity, & Compliance > IAM```
