@@ -200,7 +200,7 @@ Login into Account ID 111111111111. This is the account we are going to use to c
 
 In this case `Identity and Access Management (IAM)` is a global service so do not worry in what region you are in. However, be sure you are in us-east-1 (N. Virginia) for most of the purposes of this project. Though some AWS Services are global, among those `Identity and Access Management (IAM)` and `S3` others like `EventBridge`, `CloudWatch`, `SNS Topics`, and `Lambda` is regional .
 
-### 2 Setting up a Role "AutoTaggingMasterLambda" in ReceiverAccount with the appropiate policies attached to ensure that it can execute basic Lambda functions and is able to assume a role in linked account called "AutoTaggingExecuteLambda"
+ ### 2 Setting up the primary Role "AutoTaggingMasterLambda" in ReceiverAccount to execute basic Lambda functions, to and to assume the role "AutoTaggingExecuteLambda"in linked account
 Create a role in *Receiver Accoun*t that has enough permissions to execute the lambda auto-tagging function and to assume the tag creation role in *Linked Account*. 
 Follow the steps:
 Create a Policy **"AssumeLinkedRolePolicy"** to allow AutoTaggingMasterLambda role in receiver account  to assume any role named AWSLambdaBasicExecutionRole in any *Linked account *
@@ -346,7 +346,7 @@ j.- In Description type "Policy to enable **AutoTaggingExecuteLambda** Role to t
 
 ![alt text](https://raw.githubusercontent.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/main/img/3.png)
 
-#### Create AutoTaggingExecuteLambda role in Linked account
+#### Create AutoTaggingExecuteLambda role and modify its trust policy in Linked Account
 a.- Be sure you are in *Receiver Account* 222222222222
 b.- At the console screen go to services and type in the text box `"IAM"` or under All services > Security, Identity, & Compliance > IAM
 d.- In Create Role window > Under "Select type of trusted entity" keep AWS service as your choice
@@ -387,7 +387,7 @@ We set our lambda function in virginia region or us-east-1. This is the endpoint
 
 Create a **AutoTagging** lambda function with the console:
 
-a.- First, be sure you are in Receiver Account in us-east-1 . In the console click the services tab and look for Lamdba under 
+a.- First, be sure you are in Receiver Account in us-east-1 . In the console click the services tab and look for Lamdba under (It seems repetive, but it is easy to be in the wrong account and fail to do the settings)
 ```
 All services > Compute > Lambda or just type lambda in the text box. then hit Lambda
 ```
@@ -401,7 +401,7 @@ h.- Under Code source > In Environment click `lambda_function.py`
 i.- Delete all existing code an replace it with the code provided in the `CreateTagCreatorID.py` file
 j.- Once you paste the new code click "Deploy"
 j.- In the Code Source menu click Test
-k.- In Configure test event leave Create new test event selected, In event name type create_tags and click "Create Test" Button
+k.- In "Configure test event" leave Create new test event selected, In event template leave "Hello-world". In name type "create_tags", leave the rest as it is and click "Create Test" Button. Voila your lambda function is set!
 
 ![alt text](https://raw.githubusercontent.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/main/img/6.png)
 
