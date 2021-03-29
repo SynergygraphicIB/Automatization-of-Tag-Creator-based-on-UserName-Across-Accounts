@@ -340,7 +340,7 @@ e.- In Create policy window select JSON tab. Click and paste the following polic
 }
 ```
 
-h.- Click "Next: Review" button
+h.- Click "Next: Review" button.
 i.- In Review policy window in Name type **"AutoTaggingExecuteLambdaPolicy"**
 j.- In Description type "Policy to enable **AutoTaggingExecuteLambda** Role to tag newly deployed resources in this Account" and click "Create policy"
 
