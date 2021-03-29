@@ -443,7 +443,7 @@ The default event bus name is something like this - `arn:aws:events:us-east-1:11
 
 ![alt text](https://raw.githubusercontent.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/main/img/8.png)
 
-And the resulting Reso policy would look something like this:
+And the resulting policy would look something like this:
 
 ```json
 {
@@ -473,7 +473,7 @@ c.- In the Amazon EventBridge menu select Rules and click "Create Rule" button
 d.- Under Name and Description > Name type **"EventAutoTaggingRule**"
 e.- Add a Description **"Rule to send creation events to SnsSendToLambda"** if you choose to, it is optional
 f.- In Define pattern choose ```"Event pattern" > Custom Pattern```
-g.- Copy paste the following json pattern
+g.- Copy paste the following json in Event Pattern Text Box
 ```json
 {
   "detail-type": [
@@ -493,6 +493,7 @@ g.- Copy paste the following json pattern
   }
 }
 ```
+... Click "Save"
 Notice that this is exactly the same rule we used in CloudWatch in Receiver Account
 
 h.- In Select event bus leave it as it is, `"AWS default event bus"` and `"Enable the rule on the selected bus"`
@@ -511,7 +512,7 @@ c.- In the ```Amazon EventBridge menu select Rules and click "Create Rule" butto
 d.- Under Name and ```Description > Name type "EventAutoTaggingRule"``
 e.- Add a Description "Rule to send creation events to default event bus in receiver account" if you choose to, it is optional
 f.- In Define pattern choose ``"Event pattern" > Custom Pattern``
-g.- Copy paste the following json pattern
+g.- Copy paste the following json in the Event Pattern Text Box
 ```json
 {
   "detail-type": [
@@ -531,6 +532,7 @@ g.- Copy paste the following json pattern
   }
 }
 ```
+...Click "Save"
 Notice that this is exactly the same rule we used in CloudWatch in Receiver Account
 
 h.- In Select event bus leave it as it is, ```"AWS default event bus" ```and "Enable the rule on the selected bus"
