@@ -7,6 +7,7 @@ Insofar we have the following services sucessfully tested for auto-tag creation;
 2. Basic to intermedial level in json to edit json policies in `EventBridge Rules` to change the rules and policies to the needs of your use cases since we have not cover every single resource in AWS.
 3. An existing `AWS Organization`
 4. A `Resource Access Manager (RAM)` > Settings with "Enable Sharing with AWS Organizations" checked.
+![image](https://user-images.githubusercontent.com/77359069/112931098-c7f81180-911b-11eb-8033-1adbcfc7173a.png)
 {paste imagen aqui}
 5. One AWS Account known as the "the Central or *Receiver Account"* to centralize and receive all creation events. Here is where we deploy **AutoTagging Lambda function**.
 6. In Every other linked/ sender  account included in your organization will need the following
