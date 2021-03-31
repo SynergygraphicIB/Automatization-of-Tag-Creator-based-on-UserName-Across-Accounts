@@ -130,11 +130,13 @@ def lambda_handler(event, context):
         addtagResource(resourcegroupstaggingapi,userName,principaID, bucket_name)
         
     elif(eventName == "PutObject"):    
-        resourcegroupstaggingapi= boto3.client('resourcegroupstaggingapi' , region_name = region, aws_access_key_id = ACCESS_KEY, aws_secret_access_key = SECRET_KEY ,aws_session_token = SESSION_TOKEN)
-        logArn= event["detail"]["requestParameters"].get("logGroupName")
-        logArn = "arn:aws:sqs:"+region+":" +str(event.get("account"))+":"+logArn
-        addtagResource(resourcegroupstaggingapi,userName,principaID, logArn)
-        
+        resourcegroupstaggingapi= boto3.client('s3' , region_name = region, aws_access_key_id = ACCESS_KEY, aws_secret_access_key = SECRET_KEY ,aws_session_token = SESSION_TOKEN)
+        obj= event["detail"]["resources"][0]["ARN"]
+        bucket_name= event["detail"]["requestParameters"].get("bucketName")
+        bucket_arn ="arn:aws:s3:::"+bucket_name
+        file = obj.split(bucket_arn+"/")[1] 
+        addTagObjt(resourcegroupstaggingapi,userName,principaID, bucket_name,file)
+
     #EC2
     elif("Create" in eventName or (eventName in ["RunInstances","AllocateAddress"])):
         
@@ -342,6 +344,31 @@ def addtagLogGruop(client,userName,principaID, arn):
     except Exception as e:
         print (e)
         
+
         
         
-    
+def addTagObjt(client,userName,principaID, ids ,file):
+    try:
+        response = client.put_object_tagging(
+            Bucket=ids,
+            Key=file,
+            Tagging={
+                  'TagSet' : [
+                    {
+                        'Key': 'creatorId',
+                        'Value': principaID,
+                    },
+                    {
+                        'Key': 'UserName',
+                        'Value': userName,
+                    },
+                    {
+                        'Key': 'create_at',
+                        'Value': now
+                    },
+                ]
+                
+            },
+        )
+    except Exception as e:
+        print (e)
