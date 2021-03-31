@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     
     eventName=event["detail"].get("eventName")
     
-    roleARN= "arn:aws:iam::"+str(event.get("account"))+":role/AutoTaggingExecuteLambda"
+    roleARN= "arn:aws:iam::"+str(event.get("account"))+":role/ExecuteAutoTaggingLambda"
     
     sts_connection = boto3.client('sts')
     acct_b = sts_connection.assume_role(
