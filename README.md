@@ -346,16 +346,13 @@ b.- At the console screen go to services and type in the text box `"IAM"` or und
 d.- In Create Role window > Under "Select type of trusted entity" keep AWS service as your choice
 e.- In "Choose a use case" select "Lambda" and click "Next: Permissions" button
 ![alt text](https://raw.githubusercontent.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/main/img/4.png)
-f.- In next window, under Attach Permissions policies in the search box type "lambdabasic"
-g.- Checkmark the AWS managed policy **"AWSLambdaBasicExecutionRole"**
-h.- Under Create policy clear the Search box 
-i- Click Filter policies and checkmark "Customer managed"
-j.- Scroll down and checkmark the Customer managed policy **"ExecuteAutoTaggingLambdaPolicy"**
-k.-  Click "Next:Tags" button and click "Next: Review" button too
-l.- Under Review, in Role name `*` type **ExecuteAutoTaggingLambda.** 
-m.- In Role description type "Resource Role to give permission to lambda autotagging function in *receiver account* to tag resources deployed in this Linked Account". 
+f- Click Filter policies and checkmark "Customer managed"
+g.- Scroll down and checkmark the Customer managed policy **"ExecuteAutoTaggingLambdaPolicy"**
+h.-  Click "Next:Tags" button and click "Next: Review" button too
+i.- Under Review, in Role name `*` type **ExecuteAutoTaggingLambda.** 
+j.- In Role description type "Resource Role to give permission to lambda autotagging function in *receiver account* to tag resources deployed in this Linked Account". 
 Observe that in Trusted entities you got AWS service: lambda.amazonaws.com and two policies attached to the role.
-n.- Click "Create Role Button"
+k.- Click "Create Role Button"
 
 ![alt text](https://raw.githubusercontent.com/SynergygraphicIB/Automatization-of-Tag-Creator-based-on-UserName-Across-Accounts/main/img/5.png)
 
