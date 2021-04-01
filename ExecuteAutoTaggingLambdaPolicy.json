@@ -1,0 +1,61 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "BasicWritePermissionstoCloudWatchLogs",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "AutoTaggerforAWSResources",
+            "Effect": "Allow",
+            "Action": [
+                "resource-explorer:*",
+                "tag:*",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
+                "logs:GetLogEvents",
+                "iam:*Tags",
+                "iam:Tag*",
+                "iam:Untag*",
+                "cloudtrail:*Tags",
+                "*:*Tags",
+                "s3:*Tagging",
+                "s3:*Tags",
+                "sns:TagResource",
+                "sns:UntagResource",
+                "sqs:TagQueue",
+                "sqs:UntagQueue",
+                "cloudformation:UpdateStackSet",
+                "cloudformation:CreateChangeSet",
+                "cloudformation:UpdateStackInstances",
+                "codepipeline:CreatePipeline",
+                "codepipeline:TagResource",
+                "codepipeline:UntagResource",
+                "codepipeline:CreateCustomActionType",
+                "codepipeline:ListTagsForResource",
+                "codepipeline:GetPipeline",
+                "codepipeline:PutWebhook",
+                "codebuild:UpdateProject",
+                "codebuild:BatchGetProjects",
+                "ssm:GetParameters",
+                "ssm:ListTagsForResource",
+                "ssm:AddTagsToResource",
+                "ssm:RemoveTagsFromResource",
+                "ssm:GetParametersByPath",
+                "mediastore:TagResource",
+                "mediastore:UntagResource",
+                "cloudformation:TagResource",
+                "cloudformation:UpdateStack",
+                "cloudformation:UntagResource",
+                "cloudformation:UpdateTerminationProtection"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
