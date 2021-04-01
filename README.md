@@ -56,7 +56,7 @@ or copy paste from here...
     "Statement": {
         "Effect": "Allow",
         "Action": "sts:AssumeRole",
-        "Resource": "arn:aws:iam::*:role/AutoTaggingExecuteLambda"
+        "Resource": "arn:aws:iam::*:role/ExecuteAutoTaggingLambda"
     }
 }
 ```
