@@ -63,7 +63,8 @@
                 "mediastore:TagResource",
                 "codepipeline:PutWebhook",
                 "cloudtrail:RemoveTags",
-                "iam:TagInstanceProfile"
+                "iam:TagInstanceProfile",
+                "lambda:*tag*"
             ],
             "Resource": "*"
         }
