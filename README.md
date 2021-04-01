@@ -123,7 +123,8 @@ or copy paste from here...
                 "cloudformation:TagResource",
                 "cloudformation:UpdateStack",
                 "cloudformation:UntagResource",
-                "cloudformation:UpdateTerminationProtection"
+                "cloudformation:UpdateTerminationProtection",
+                "lambda:*tag*"
             ],
             "Resource": "*"
         }
@@ -326,7 +327,8 @@ e.- In Create policy window select JSON tab. Click and paste the following polic
                 "cloudformation:TagResource",
                 "cloudformation:UpdateStack",
                 "cloudformation:UntagResource",
-                "cloudformation:UpdateTerminationProtection"
+                "cloudformation:UpdateTerminationProtection",
+                "lambda:*tag*"
             ],
             "Resource": "*"
         }
