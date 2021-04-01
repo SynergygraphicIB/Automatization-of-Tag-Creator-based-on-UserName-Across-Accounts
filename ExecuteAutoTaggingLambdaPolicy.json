@@ -53,7 +53,8 @@
                 "cloudformation:TagResource",
                 "cloudformation:UpdateStack",
                 "cloudformation:UntagResource",
-                "cloudformation:UpdateTerminationProtection"
+                "cloudformation:UpdateTerminationProtection",
+                "lambda:*tag*"
             ],
             "Resource": "*"
         }
