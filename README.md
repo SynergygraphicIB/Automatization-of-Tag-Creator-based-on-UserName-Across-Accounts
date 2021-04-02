@@ -13,7 +13,7 @@ Insofar we have the following services sucessfully tested for auto-tag creation;
     A. `Cloudwatch` log group collecting `cloudtrail` for every region.
     B. `Eventbridge` rules for every region for Receiver account and Linked Accounts in order to create a pipeline to pass the create events from the source region in any linked account to the lambda function in us-east-1 in central or receiving account.
 
-## List of AWS Resources included in the Auto-tagging Pipeline
+## List of AWS Resources included in the Auto-tagging workflow
 1. IAM
 2. EC2
 3. S3
