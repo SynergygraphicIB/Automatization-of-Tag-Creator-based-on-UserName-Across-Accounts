@@ -43,7 +43,7 @@ An Existing AWS organization that for the purpose of this project has an ID my-o
 Must be sure that Enabling sharing with AWS Organizations is checked. In the Central Account go to ```Services Tab > type RAM in the search for services text box > select Resource Access Manager > In the RAM menu go to Settings - "Enable sharing with AWS Organizations"``` must be selected.
 
 ### IAM Roles and Policies
-In this case `Identity and Access Management (IAM)` is a global service so do not worry in what region you are in at the moment of loggin in. Though some AWS Services are global like this one and `S3` some others like `EventBridge`, `CloudWatch`, `SNS Topics`, and `Lambda` is regional; therefore, be sure you are in us-east-1 (N. Virginia) for most of the purposes of this project. 
+In this case `Identity and Access Management (IAM)` is a global element, so do not worry in what region you are in at the moment of loggin in. Though some AWS Services are global like this one and `S3` some others like `EventBridge`, `CloudWatch`, `SNS Topics`, and `Lambda` is regional; therefore, be sure you are in us-east-1 (N. Virginia) for most of the purposes of this project. 
 We need two roles, one  in *Receiver Account* with tailored permissions to assume a role in the linked account and to execute basic lambda functions, and another in the linked account with least priviledge access to create tags for newly launched resources sucha as such as `VPCs, S3 Buckets, SNS Topics, etc`  . In is important to follow the least priviledge access principle when attaching or creating policies for any roles we create.
 
 **"MasterAutoTaggingLambda"** - IAM Resource Role to give permission to lambda autotagging function in *receiver account* to assume role in *linked account* with AWS STS service and to execute basic lambda functions.
@@ -179,7 +179,7 @@ It is important to mention that by using *SNS Topics* as intermedial step in the
 
 **AutoTagging** - Lambda function that we deploy in the *Receiver Account* in the us-east-1 region. It is triggered by a message coming from **SnsSendToLambda**. First, It  converts the message containing the event in a form of a string back into `json` format. Then it sorts every creation case and creates a set of tags; the creator ID, the ARN, and the timestamp to track who did what and when. This is a highly valuable feature to help keep tracking resources and reduce the time consuming resource management, and cut cost. 
 
-### How does this Auto-Tagging Pipeline work? 
+### Let us take a look at Auto-Tagging workflow
 A AWS resource, a VPC  is deployed by *Sender* or *linked account* either by using the console or the AWS SDK for Python (Boto3). Yet, all tagging is going to be done by the **AutoTagging** lambda function in us-east-1 in Receiver Account. 
 The VPC deployment generates an event metadata; the timestamp, who was the creator, ARN of the creator, etc. Thus the meta data is passed from the region of origin us-east-1 in *linked account* to trigger the lambda function in *receiver account* and do the tagging.
 
